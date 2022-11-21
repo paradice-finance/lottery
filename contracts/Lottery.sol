@@ -69,7 +69,7 @@ contract Lottery is Ownable, Testable {
         return players;
     }
 
-    function buyTicket(uint256 ticket) public payable {
+    function buyTicket() public payable {
         require(msg.value == 660);
         // address of player entering lottery
         players.push(payable(msg.sender));
