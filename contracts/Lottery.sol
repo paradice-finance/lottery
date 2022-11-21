@@ -11,8 +11,8 @@ contract Lottery is Ownable, Testable {
 
     address payable[] public players;
     uint256 public lotteryId;
-
-    mapping(uint256 => uint256) public priceHistory;
+    uint256 private ticketPrice;
+    uint256 public maxPlayersPerRound;
 
     enum Status {
         NotStarted, // The lottery has not started yet
@@ -40,8 +40,14 @@ contract Lottery is Ownable, Testable {
         _;
     }
 
-    constructor(address _timer) Testable(_timer) {
+    constructor(
+        address _timer,
+        uint256 _ticketPrice,
+        uint256 _maxPlayersPerRound
+    ) Testable(_timer) {
         lotteryId = 1;
+        ticketPrice = _ticketPrice;
+        maxPlayersPerRound = _maxPlayersPerRound;
     }
 
     function costToBuyTickets()
@@ -49,7 +55,7 @@ contract Lottery is Ownable, Testable {
         view
         returns (uint256 _currentTicketPrice)
     {
-        _currentTicketPrice = priceHistory[lotteryId];
+        _currentTicketPrice = allLotteries_[lotteryId].costPerTicket;
     }
 
     function getBasicLottoInfo(uint256 _lotteryId)
@@ -70,7 +76,7 @@ contract Lottery is Ownable, Testable {
     }
 
     function buyTicket() public payable {
-        require(msg.value == 660);
+        require(msg.value == allLotteries_[lotteryId].costPerTicket);
         // address of player entering lottery
         players.push(payable(msg.sender));
     }
@@ -80,6 +86,12 @@ contract Lottery is Ownable, Testable {
     }
 
     function drawWinningNumbers() external onlyOwner {
+        // Checks that the lottery is fully sold
+        require(
+            players.length == maxPlayersPerRound,
+            "Cannot set winning when the lottery isn't fully sold"
+        );
+
         // Checks that the lottery is past the closing block
         require(
             allLotteries_[lotteryId].closingTimestamp <= getCurrentTime(),
@@ -97,7 +109,10 @@ contract Lottery is Ownable, Testable {
 
         // TODO: update amount to transfer to be percent of
         players[index].transfer(address(this).balance);
+
         lotteryId++;
+        allLotteries_[lotteryId].lotteryStatus = Status.Open;
+        allLotteries_[lotteryId].costPerTicket = ticketPrice;
 
         players = new address payable[](0);
     }
