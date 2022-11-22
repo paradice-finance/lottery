@@ -54,12 +54,10 @@ contract VRFD20 is VRFConsumerBaseV2 {
     uint32 numWords = 1;
     address s_owner;
 
-    // map rollers to requestIds
-    mapping(uint256 => address) private s_rollers;
     // map vrf results to rollers
-    mapping(address => uint256) private s_results;
+    mapping(uint256 => uint256) private s_results;
 
-    event DiceRolled(uint256 indexed requestId, address indexed roller);
+    event DiceRolled(uint256 indexed requestId);
     event DiceLanded(uint256 indexed requestId, uint256 indexed result);
 
     /**
@@ -80,15 +78,9 @@ contract VRFD20 is VRFConsumerBaseV2 {
      * @dev Warning: if the VRF response is delayed, avoid calling requestRandomness repeatedly
      * as that would give miners/VRF operators latitude about which VRF response arrives first.
      * @dev You must review your implementation details with extreme care.
-     *
-     * @param roller address of the roller
      */
-    function rollDice(address roller)
-        public
-        onlyOwner
-        returns (uint256 requestId)
-    {
-        require(s_results[roller] == 0, "Already rolled");
+    function rollReward() public onlyOwner returns (uint256 requestId) {
+        require(s_results[requestId] == 0, "Already rolled");
         // Will revert if subscription is not set and funded.
         requestId = COORDINATOR.requestRandomWords(
             s_keyHash,
@@ -98,9 +90,8 @@ contract VRFD20 is VRFConsumerBaseV2 {
             numWords
         );
 
-        s_rollers[requestId] = roller;
-        s_results[roller] = ROLL_IN_PROGRESS;
-        emit DiceRolled(requestId, roller);
+        s_results[requestId] = ROLL_IN_PROGRESS;
+        emit DiceRolled(requestId);
     }
 
     /**
@@ -121,50 +112,14 @@ contract VRFD20 is VRFConsumerBaseV2 {
         override
     {
         uint256 d20Value = (randomWords[0] % 20) + 1;
-        s_results[s_rollers[requestId]] = d20Value;
+        s_results[requestId] = d20Value;
         emit DiceLanded(requestId, d20Value);
     }
 
-    /**
-     * @notice Get the house assigned to the player once the address has rolled
-     * @param player address
-     * @return house as a string
-     */
-    function house(address player) public view returns (string memory) {
-        require(s_results[player] != 0, "Dice not rolled");
-        require(s_results[player] != ROLL_IN_PROGRESS, "Roll in progress");
-        return getHouseName(s_results[player]);
-    }
-
-    /**
-     * @notice Get the house namne from the id
-     * @param id uint256
-     * @return house name string
-     */
-    function getHouseName(uint256 id) private pure returns (string memory) {
-        string[20] memory houseNames = [
-            "Targaryen",
-            "Lannister",
-            "Stark",
-            "Tyrell",
-            "Baratheon",
-            "Martell",
-            "Tully",
-            "Bolton",
-            "Greyjoy",
-            "Arryn",
-            "Frey",
-            "Mormont",
-            "Tarley",
-            "Dayne",
-            "Umber",
-            "Valeryon",
-            "Manderly",
-            "Clegane",
-            "Glover",
-            "Karstark"
-        ];
-        return houseNames[id - 1];
+    function getResult(uint256 requestId) public view returns (uint256) {
+        require(s_results[requestId] != 0, "Dice not rolled");
+        require(s_results[requestId] != ROLL_IN_PROGRESS, "Roll in progress");
+        return s_results[requestId];
     }
 
     modifier onlyOwner() {
