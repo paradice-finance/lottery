@@ -28,8 +28,6 @@ contract Lottery is Ownable, Testable {
     uint8 public sizeOfLottery_;
     // all ticket in current round
     uint256[] public currentTickets_;
-    // Max range for numbers (starting at 0)
-    uint16 public maxValidRange_;
 
     // Represents the status of the lottery
     enum Status {
@@ -82,12 +80,10 @@ contract Lottery is Ownable, Testable {
     constructor(
         address _token,
         address _timer,
-        uint8 _sizeOfLotteryNumbers,
-        uint16 _maxValidNumberRange
+        uint8 _sizeOfLotteryNumbers
     ) Testable(_timer) {
         require(_token != address(0), "Contracts cannot be 0 address");
         require(_sizeOfLotteryNumbers != 0, "Lottery setup cannot be 0");
-        maxValidRange_ = _maxValidNumberRange;
         token_ = IERC20(_token);
         sizeOfLottery_ = _sizeOfLotteryNumbers;
         // set max ticket to tickets array
@@ -121,10 +117,6 @@ contract Lottery is Ownable, Testable {
         returns (LottoInfo memory)
     {
         return (allLotteries_[_lotteryId]);
-    }
-
-    function getMaxRange() external view returns (uint16) {
-        return maxValidRange_;
     }
 
     function createNewLotto(uint256 _costPerTicket)
