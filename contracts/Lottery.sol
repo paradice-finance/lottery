@@ -41,7 +41,7 @@ contract Lottery is Ownable {
         uint256 lotteryID; // ID for lotto
         Status lotteryStatus; // Status for lotto
         address tokenAddress; // $token in current round
-        uint8 sizeOfLottery;
+        uint8 sizeOfLottery; // Show how many tickets there are in one prize round
         uint256 prizePoolInToken; // The amount of $token for prize money
         uint256 ticketPrice; // Cost per ticket in $token
         TicketInfo winningTicket; // The winning ticket number
