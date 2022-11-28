@@ -5,6 +5,9 @@ interface ILottery {
     //-------------------------------------------------------------------------
     // STATE MODIFYING FUNCTIONS
     //-------------------------------------------------------------------------
-
-    function drawWinningTicket(uint256 _lotteryId) external;
+    function numbersDrawn(
+        uint256 _lotteryId,
+        uint256 _requestId,
+        uint256 _randomIndex
+    ) external;
 }
