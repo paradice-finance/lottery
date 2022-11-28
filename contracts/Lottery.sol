@@ -115,7 +115,7 @@ contract Lottery is Ownable, Initializable {
 
         token_ = IERC20(_token);
         sizeOfLottery_ = _sizeOfLotteryNumbers;
-        ticketPrice_ = _ticketPrice * 10 ** 18;
+        ticketPrice_ = _ticketPrice * 10**18;
         ticketIdCounter_ = 1;
         lotteryIdCounter_ = 1;
 
@@ -134,9 +134,11 @@ contract Lottery is Ownable, Initializable {
         emit LotteryOpen(lotteryIdCounter_);
     }
 
-    function initialize(
-        address _IRandomNumberGenerator
-    ) external initializer onlyOwner {
+    function initialize(address _IRandomNumberGenerator)
+        external
+        initializer
+        onlyOwner
+    {
         require(
             _IRandomNumberGenerator != address(0),
             "Contracts cannot be 0 address"
@@ -144,17 +146,20 @@ contract Lottery is Ownable, Initializable {
         randomGenerator_ = IRandomNumberGenerator(_IRandomNumberGenerator);
     }
 
-    function costToBuyTickets(
-        uint256 _lotteryId,
-        uint256 _numberOfTickets
-    ) external view returns (uint256 totalCost) {
+    function costToBuyTickets(uint256 _lotteryId, uint256 _numberOfTickets)
+        external
+        view
+        returns (uint256 totalCost)
+    {
         uint256 ticketPrice = allLotteries_[_lotteryId].ticketPrice;
         totalCost = ticketPrice * _numberOfTickets;
     }
 
-    function getBasicLottoInfo(
-        uint256 _lotteryId
-    ) external view returns (LottoInfo memory) {
+    function getBasicLottoInfo(uint256 _lotteryId)
+        external
+        view
+        returns (LottoInfo memory)
+    {
         return (allLotteries_[_lotteryId]);
     }
 
@@ -162,16 +167,19 @@ contract Lottery is Ownable, Initializable {
      * @param   _ticketID: The unique ID of the ticket
      * @return  address: Owner of ticket
      */
-    function getOwnerOfTicket(
-        uint256 _ticketID
-    ) external view returns (address) {
+    function getOwnerOfTicket(uint256 _ticketID)
+        external
+        view
+        returns (address)
+    {
         return allTickets_[_ticketID].owner;
     }
 
-    function getUserTickets(
-        uint256 _lotteryId,
-        address _user
-    ) external view returns (uint256[] memory) {
+    function getUserTickets(uint256 _lotteryId, address _user)
+        external
+        view
+        returns (uint256[] memory)
+    {
         return userTickets_[_user][_lotteryId];
     }
 
@@ -292,9 +300,10 @@ contract Lottery is Ownable, Initializable {
     /**
      * @param  _listOfLotterryId: all LotteryId that want to claim reward
      */
-    function claimAffiliate(
-        uint16[] calldata _listOfLotterryId
-    ) external payable {
+    function claimAffiliate(uint16[] calldata _listOfLotterryId)
+        external
+        payable
+    {
         uint256[] memory claimedLotteryIds = new uint256[](
             _listOfLotterryId.length
         );
@@ -334,5 +343,15 @@ contract Lottery is Ownable, Initializable {
         );
 
         emit RequestNumbers(lotteryIdCounter_, requestId_);
+    }
+
+    function setRandomGeneratorAddress(address _randomGenerator)
+        public
+        onlyOwner
+    {
+        // Checks lottery numbers have not already been drawn
+        require(_randomGenerator != address(0), "Incorrect address format");
+
+        randomGenerator_ = IRandomNumberGenerator(_randomGenerator);
     }
 }
