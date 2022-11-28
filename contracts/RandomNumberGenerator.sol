@@ -3,17 +3,9 @@ pragma solidity ^0.8.17;
 
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
+import "./ILottery.sol";
 
 contract RandomNumberGenerator is VRFConsumerBaseV2 {
-    constructor(uint64 subscriptionId, address _lottery)
-        VRFConsumerBaseV2(vrfCoordinator)
-    {
-        lottery = _lottery;
-        COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
-        s_owner = msg.sender;
-        s_subscriptionId = subscriptionId;
-    }
-
     uint256 private constant ROLL_IN_PROGRESS = 9999;
 
     VRFCoordinatorV2Interface COORDINATOR;
@@ -38,7 +30,6 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     mapping(uint256 => uint256) private requestRandom;
     mapping(uint256 => uint256) public round_result;
     uint256 internal round_size;
-    uint256 current_lottery_id;
 
     event TicketRolled(uint256 indexed requestId);
     event TicketResulted(uint256 indexed requestId, uint256 indexed result);
@@ -55,14 +46,23 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
         _;
     }
 
+    constructor(
+        uint64 subscriptionId,
+        address _lottery
+    ) VRFConsumerBaseV2(vrfCoordinator) {
+        lottery = _lottery;
+        COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
+        s_owner = msg.sender;
+        s_subscriptionId = subscriptionId;
+    }
+
     /**
      * Requests randomness from a user-provided seed
      */
-    function requestRandomNumber(uint256 _round_size)
-        public
-        onlyLottery
-        returns (uint256 requestId)
-    {
+    function requestRandomNumber(
+        uint256 lotteryId_,
+        uint256 _round_size
+    ) public onlyLottery returns (uint256 requestId) {
         requestId = COORDINATOR.requestRandomWords(
             s_keyHash,
             s_subscriptionId,
@@ -70,16 +70,20 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
             callbackGasLimit,
             numWords
         );
+        currentLotteryId = lotteryId_;
         round_result[requestId] = ROLL_IN_PROGRESS;
         round_size = _round_size;
     }
 
-    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
-        internal
-        override
-    {
+    function fulfillRandomWords(
+        uint256 requestId,
+        uint256[] memory randomWords
+    ) internal override {
         uint256 d20Value = (randomWords[0] % round_size) + 1;
         round_result[requestId] = d20Value;
+
+        ILottery(requester).numbersDrawn(currentLotteryId, requestId, d20Value);
+
         emit TicketResulted(requestId, d20Value);
     }
 

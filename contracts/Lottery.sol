@@ -3,11 +3,12 @@ pragma solidity ^0.8.17;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // Random number
 import "./IRandomNumberGenerator.sol";
 
-contract Lottery is Ownable {
+contract Lottery is Ownable, Initializable {
     using Address for address;
 
     // State variables
@@ -16,7 +17,7 @@ contract Lottery is Ownable {
     // Storing of the randomness generator
     IRandomNumberGenerator internal randomGenerator_;
     // Request ID for random number
-    bytes32 internal requestId_;
+    uint256 internal requestId_;
     // Counter for lottery IDs
     uint256 private lotteryIdCounter_;
     // Counter for ticket ids
@@ -68,7 +69,9 @@ contract Lottery is Ownable {
         uint256 totalCost
     );
 
-    event DrawWinnigTicket(uint256 lotteryId, uint256 winningTicket);
+    event RequestNumbers(uint256 lotteryId, uint256 requestId);
+
+    event WinnigTicket(uint256 lotteryId, uint256 winningTicket);
 
     event LotteryOpen(uint256 lotteryId);
 
@@ -98,36 +101,38 @@ contract Lottery is Ownable {
     constructor(
         address _token,
         uint8 _sizeOfLotteryNumbers,
-        uint256 _ticketPrice,
-        address _IRandomNumberGenerator
+        uint256 _ticketPrice
     ) {
         require(_token != address(0), "Contracts cannot be 0 address");
         require(_sizeOfLotteryNumbers != 0, "Lottery setup cannot be 0");
-        require(
-            _IRandomNumberGenerator != address(0),
-            "Contracts cannot be 0 address"
-        );
+
         token_ = IERC20(_token);
         sizeOfLottery_ = _sizeOfLotteryNumbers;
         ticketPrice_ = _ticketPrice;
         ticketIdCounter_ = 1;
+    }
+
+    function initialize(
+        address _IRandomNumberGenerator
+    ) external initializer onlyOwner {
+        require(
+            _IRandomNumberGenerator != address(0),
+            "Contracts cannot be 0 address"
+        );
         randomGenerator_ = IRandomNumberGenerator(_IRandomNumberGenerator);
     }
 
-    function costToBuyTickets(uint256 _lotteryId, uint256 _numberOfTickets)
-        external
-        view
-        returns (uint256 totalCost)
-    {
+    function costToBuyTickets(
+        uint256 _lotteryId,
+        uint256 _numberOfTickets
+    ) external view returns (uint256 totalCost) {
         uint256 ticketPrice = allLotteries_[_lotteryId].ticketPrice;
         totalCost = ticketPrice * _numberOfTickets;
     }
 
-    function getBasicLottoInfo(uint256 _lotteryId)
-        external
-        view
-        returns (LottoInfo memory)
-    {
+    function getBasicLottoInfo(
+        uint256 _lotteryId
+    ) external view returns (LottoInfo memory) {
         return (allLotteries_[_lotteryId]);
     }
 
@@ -135,19 +140,16 @@ contract Lottery is Ownable {
      * @param   _ticketID: The unique ID of the ticket
      * @return  address: Owner of ticket
      */
-    function getOwnerOfTicket(uint256 _ticketID)
-        external
-        view
-        returns (address)
-    {
+    function getOwnerOfTicket(
+        uint256 _ticketID
+    ) external view returns (address) {
         return allTickets_[_ticketID].owner;
     }
 
-    function getUserTickets(uint256 _lotteryId, address _user)
-        external
-        view
-        returns (uint256[] memory)
-    {
+    function getUserTickets(
+        uint256 _lotteryId,
+        address _user
+    ) external view returns (uint256[] memory) {
         return userTickets_[_user][_lotteryId];
     }
 
@@ -221,8 +223,8 @@ contract Lottery is Ownable {
         // check for drawing win ticket
         if (currentTickets_.length == sizeOfLottery_) {
             allLotteries_[lotteryIdCounter_].lotteryStatus = Status.Closed;
-            emit LotteryClose(lotteryIdCounter_);
             drawWinningTicket();
+            emit LotteryClose(lotteryIdCounter_);
         }
     }
 
@@ -232,26 +234,43 @@ contract Lottery is Ownable {
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Closed,
             "Lottery State incorrect for draw"
         );
-        // Requests a random number from the generator
-        // requestId_ = randomGenerator_.getRandomNumber(lotteryIdCounter_);
-        // Find winner from requestId_
-        uint256 index = uint256(requestId_) % sizeOfLottery_;
+        // Requests a request number from the generator
+        requestId_ = randomGenerator_.requestRandomNumber(
+            lotteryIdCounter_,
+            allLotteries_[lotteryIdCounter_].sizeOfLottery
+        );
+
+        emit RequestNumbers(lotteryIdCounter_, requestId_);
+    }
+
+    function numbersDrawn(
+        uint256 _lotteryId,
+        uint256 _requestId,
+        uint256 _randomIndex
+    ) external onlyRandomGenerator {
+        require(
+            allLotteries_[_lotteryId].lotteryStatus == Status.Closed,
+            "Draw numbers first"
+        );
+        require(requestId_ == _requestId, "invalid request id");
+
         allLotteries_[lotteryIdCounter_].winningTicket = allTickets_[
-            currentTickets_[index]
+            currentTickets_[_randomIndex]
         ];
+
         allLotteries_[lotteryIdCounter_].lotteryStatus = Status.Completed;
-        // Emits that winning ticket number
-        emit DrawWinnigTicket(lotteryIdCounter_, currentTickets_[index]);
+
+        emit WinnigTicket(lotteryIdCounter_, currentTickets_[_randomIndex]);
     }
 
     /**
      * @param   _to The address being minted to
      * @param   _numberOfTickets The number of NFT's to mint
      */
-    function batchMint(address _to, uint8 _numberOfTickets)
-        private
-        returns (uint256[] memory)
-    {
+    function batchMint(
+        address _to,
+        uint8 _numberOfTickets
+    ) private returns (uint256[] memory) {
         // Storage for the ticket IDs
         uint256[] memory ticketIds = new uint256[](_numberOfTickets);
         for (uint8 i = 0; i < _numberOfTickets; i++) {
