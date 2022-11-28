@@ -46,10 +46,9 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
         _;
     }
 
-    constructor(
-        uint64 subscriptionId,
-        address _lottery
-    ) VRFConsumerBaseV2(vrfCoordinator) {
+    constructor(uint64 subscriptionId, address _lottery)
+        VRFConsumerBaseV2(vrfCoordinator)
+    {
         lottery = _lottery;
         COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
         s_owner = msg.sender;
@@ -59,10 +58,11 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     /**
      * Requests randomness from a user-provided seed
      */
-    function requestRandomNumber(
-        uint256 lotteryId_,
-        uint256 _round_size
-    ) public onlyLottery returns (uint256 requestId) {
+    function requestRandomNumber(uint256 lotteryId_, uint256 _round_size)
+        public
+        onlyLottery
+        returns (uint256 requestId)
+    {
         requestId = COORDINATOR.requestRandomWords(
             s_keyHash,
             s_subscriptionId,
@@ -75,16 +75,13 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
         round_size = _round_size;
     }
 
-    function fulfillRandomWords(
-        uint256 requestId,
-        uint256[] memory randomWords
-    ) internal override {
-        uint256 d20Value = (randomWords[0] % round_size);
-        round_result[requestId] = d20Value;
-
-        ILottery(requester).numbersDrawn(currentLotteryId, requestId, d20Value);
-
-        emit TicketResulted(requestId, d20Value);
+    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords)
+        internal
+        override
+    {
+        uint256 randomValue = randomWords[0] % round_size;
+        round_result[requestId] = randomValue;
+        emit TicketResulted(requestId, randomValue);
     }
 
     function getRandomResult(uint256 requestId) public view returns (uint256) {
