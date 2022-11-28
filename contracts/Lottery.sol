@@ -233,7 +233,7 @@ contract Lottery is Ownable {
             "Lottery State incorrect for draw"
         );
         // Requests a random number from the generator
-        requestId_ = randomGenerator_.getRandomNumber(lotteryIdCounter_);
+        // requestId_ = randomGenerator_.getRandomNumber(lotteryIdCounter_);
         // Find winner from requestId_
         uint256 index = uint256(requestId_) % sizeOfLottery_;
         allLotteries_[lotteryIdCounter_].winningTicket = allTickets_[
