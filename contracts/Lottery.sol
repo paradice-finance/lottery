@@ -189,8 +189,12 @@ contract Lottery is Ownable, Initializable {
         emit LotteryOpen(lotteryId);
     }
 
+    /**
+     * @param   _ticketQty: The amount of the ticket
+     * @param  _chosenNumbersForEachTicket: Number of each ticket
+     */
     function batchBuyLottoTicket(
-        uint8 _ticketAmount,
+        uint8 _ticketQty,
         uint16[] calldata _chosenNumbersForEachTicket
     ) external payable notContract {
         require(
@@ -198,19 +202,19 @@ contract Lottery is Ownable, Initializable {
             "Lottery not in state for mint"
         );
         require(
-            _ticketAmount <=
+            _ticketQty <=
                 (allLotteries_[lotteryIdCounter_].sizeOfLottery -
                     currentTickets_.length),
             "Batch mint too large"
         );
 
         uint256 ticketPrice = allLotteries_[lotteryIdCounter_].ticketPrice;
-        uint256 totalCost = ticketPrice * _ticketAmount;
+        uint256 totalCost = ticketPrice * _ticketQty;
         // Transfers the required token to this contract
         token_.transferFrom(msg.sender, address(this), totalCost);
         // Batch mints the user their tickets
-        uint256[] memory ticketIds = new uint256[](_ticketAmount);
-        for (uint8 i = 0; i < _ticketAmount; i++) {
+        uint256[] memory ticketIds = new uint256[](_ticketQty);
+        for (uint8 i = 0; i < _ticketQty; i++) {
             currentTickets_.push(ticketIdCounter_);
             // Storing the ticket information
             ticketIds[i] = ticketIdCounter_;
