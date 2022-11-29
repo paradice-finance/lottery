@@ -190,7 +190,7 @@ contract Lottery is Ownable, Initializable {
     }
 
     /**
-     * @param   _ticketQty: The quantity of the ticket
+     * @param  _ticketQty: The quantity of the ticket
      * @param  _chosenNumbersForEachTicket: Number of each ticket
      */
     function batchBuyLottoTicket(
