@@ -199,25 +199,25 @@ contract Lottery is Ownable, Initializable {
     }
 
     function batchBuyLottoTicket(
-        uint8 _numberOfTickets
+        uint8 _ticketAmount
     ) external payable notContract {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Open,
             "Lottery not in state for mint"
         );
         require(
-            _numberOfTickets <=
+            _ticketAmount <=
                 (allLotteries_[lotteryIdCounter_].sizeOfLottery -
                     currentTickets_.length),
             "Batch mint too large"
         );
 
         uint256 ticketPrice = allLotteries_[lotteryIdCounter_].ticketPrice;
-        uint256 totalCost = ticketPrice * _numberOfTickets;
+        uint256 totalCost = ticketPrice * _ticketAmount;
         // Transfers the required token to this contract
         token_.transferFrom(msg.sender, address(this), totalCost);
         // Batch mints the user their tickets
-        uint256[] memory ticketIds = batchMint(msg.sender, _numberOfTickets);
+        uint256[] memory ticketIds = batchMint(msg.sender, _ticketAmount);
         // Emitting batch mint ticket with all information
         emit NewBatchMint(msg.sender, lotteryIdCounter_, ticketIds, msg.value);
 
