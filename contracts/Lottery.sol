@@ -70,7 +70,11 @@ contract Lottery is Ownable, Initializable {
 
     event RequestNumbers(uint256 lotteryId, uint256 requestId);
 
-    event WinnigTicket(uint256 lotteryId, uint256 winningTicket);
+    event WinnigTicket(
+        uint256 lotteryId,
+        uint256 ticketId,
+        uint256 ticketNumber
+    );
 
     event LotteryOpen(uint256 lotteryId);
 
@@ -246,13 +250,18 @@ contract Lottery is Ownable, Initializable {
         );
         require(requestId_ == _requestId, "invalid request id");
 
-        allLotteries_[lotteryIdCounter_].winningNumber = allTickets_[
-            currentTickets_[_randomIndex]
-        ].number;
+        uint256 winningNumber = allTickets_[currentTickets_[_randomIndex]]
+            .number;
+
+        allLotteries_[lotteryIdCounter_].winningNumber = winningNumber;
 
         allLotteries_[lotteryIdCounter_].lotteryStatus = Status.Completed;
 
-        emit WinnigTicket(lotteryIdCounter_, currentTickets_[_randomIndex]);
+        emit WinnigTicket(
+            lotteryIdCounter_,
+            currentTickets_[_randomIndex],
+            winningNumber
+        );
     }
 
     receive() external payable {}
