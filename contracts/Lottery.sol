@@ -23,11 +23,11 @@ contract Lottery is Ownable, Initializable {
     // Counter for ticket ids
     uint256 private ticketIdCounter_;
     // Lottery size
-    uint8 public sizeOfLottery_;
+    uint8 private sizeOfLottery_;
     // ticket price
     uint256 private ticketPrice_;
     // all ticket in current round
-    uint256[] public currentTickets_;
+    uint256[] private currentTickets_;
 
     // Represents the status of the lottery
     enum Status {
@@ -43,7 +43,6 @@ contract Lottery is Ownable, Initializable {
         Status lotteryStatus; // Status for lotto
         address tokenAddress; // $token in current round
         uint8 sizeOfLottery; // Show how many tickets there are in one prize round
-        uint256 prizePoolInToken; // The amount of $token for prize money
         uint256 ticketPrice; // Cost per ticket in $token
         TicketInfo winningTicket; // The winning ticket number
     }
@@ -64,8 +63,8 @@ contract Lottery is Ownable, Initializable {
 
     event NewBatchMint(
         address indexed minter,
+        uint256 lotteryId,
         uint256[] ticketIDs,
-        uint16[] numbers,
         uint256 totalCost
     );
 
@@ -76,13 +75,6 @@ contract Lottery is Ownable, Initializable {
     event LotteryOpen(uint256 lotteryId);
 
     event LotteryClose(uint256 lotteryId);
-
-    event InfoBatchMint(
-        address indexed receiving,
-        uint256 lotteryId,
-        uint256 amountOfTokens,
-        uint256[] tokenIds
-    );
 
     modifier notContract() {
         require(!address(msg.sender).isContract(), "contract not allowed");
@@ -108,8 +100,30 @@ contract Lottery is Ownable, Initializable {
 
         token_ = IERC20(_token);
         sizeOfLottery_ = _sizeOfLotteryNumbers;
-        ticketPrice_ = _ticketPrice;
+        ticketPrice_ = _ticketPrice * 10 ** 18;
         ticketIdCounter_ = 1;
+        lotteryIdCounter_ = 1;
+
+        // init first lotto
+        TicketInfo memory emptyWinningTicket = TicketInfo(
+            ticketIdCounter_,
+            address(this),
+            false,
+            lotteryIdCounter_
+        );
+
+        LottoInfo memory newLottery = LottoInfo(
+            lotteryIdCounter_,
+            Status.Open,
+            address(token_),
+            sizeOfLottery_,
+            ticketPrice_,
+            emptyWinningTicket
+        );
+
+        allLotteries_[lotteryIdCounter_] = newLottery;
+        // Emitting important information around new lottery.
+        emit LotteryOpen(lotteryIdCounter_);
     }
 
     function initialize(
@@ -162,8 +176,6 @@ contract Lottery is Ownable, Initializable {
         lotteryIdCounter_ += 1;
 
         // prepare data
-        uint256 prizePoolInToken = ticketPrice_ * sizeOfLottery_;
-
         TicketInfo memory emptyWinningTicket = TicketInfo(
             ticketIdCounter_,
             address(this),
@@ -177,7 +189,6 @@ contract Lottery is Ownable, Initializable {
             Status.Open,
             address(token_),
             sizeOfLottery_,
-            prizePoolInToken,
             ticketPrice_,
             emptyWinningTicket
         );
@@ -188,37 +199,27 @@ contract Lottery is Ownable, Initializable {
     }
 
     function batchBuyLottoTicket(
-        uint8 _numberOfTickets,
-        uint16[] calldata _chosenNumbersForEachTicket
+        uint8 _ticketAmount
     ) external payable notContract {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Open,
             "Lottery not in state for mint"
         );
         require(
-            _numberOfTickets <=
+            _ticketAmount <=
                 (allLotteries_[lotteryIdCounter_].sizeOfLottery -
                     currentTickets_.length),
             "Batch mint too large"
         );
-        // Temporary storage for the check of the chosen numbers array
-        require(
-            msg.value ==
-                allLotteries_[lotteryIdCounter_].ticketPrice * _numberOfTickets,
-            "invalid amount"
-        );
 
-        // Transfers the required cake to this contract
-        token_.transferFrom(msg.sender, address(this), msg.value);
+        uint256 ticketPrice = allLotteries_[lotteryIdCounter_].ticketPrice;
+        uint256 totalCost = ticketPrice * _ticketAmount;
+        // Transfers the required token to this contract
+        token_.transferFrom(msg.sender, address(this), totalCost);
         // Batch mints the user their tickets
-        uint256[] memory ticketIds = batchMint(msg.sender, _numberOfTickets);
+        uint256[] memory ticketIds = batchMint(msg.sender, _ticketAmount);
         // Emitting batch mint ticket with all information
-        emit NewBatchMint(
-            msg.sender,
-            ticketIds,
-            _chosenNumbersForEachTicket,
-            msg.value
-        );
+        emit NewBatchMint(msg.sender, lotteryIdCounter_, ticketIds, msg.value);
 
         // check for drawing win ticket
         if (currentTickets_.length == sizeOfLottery_) {
@@ -226,21 +227,6 @@ contract Lottery is Ownable, Initializable {
             drawWinningTicket();
             emit LotteryClose(lotteryIdCounter_);
         }
-    }
-
-    function drawWinningTicket() private {
-        // Checks lottery numbers have not already been drawn
-        require(
-            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Closed,
-            "Lottery State incorrect for draw"
-        );
-        // Requests a request number from the generator
-        requestId_ = randomGenerator_.requestRandomNumber(
-            lotteryIdCounter_,
-            allLotteries_[lotteryIdCounter_].sizeOfLottery
-        );
-
-        emit RequestNumbers(lotteryIdCounter_, requestId_);
     }
 
     function numbersDrawn(
@@ -261,6 +247,23 @@ contract Lottery is Ownable, Initializable {
         allLotteries_[lotteryIdCounter_].lotteryStatus = Status.Completed;
 
         emit WinnigTicket(lotteryIdCounter_, currentTickets_[_randomIndex]);
+    }
+
+    receive() external payable {}
+
+    function drawWinningTicket() private {
+        // Checks lottery numbers have not already been drawn
+        require(
+            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Closed,
+            "Lottery State incorrect for draw"
+        );
+        // Requests a request number from the generator
+        requestId_ = randomGenerator_.requestRandomNumber(
+            lotteryIdCounter_,
+            allLotteries_[lotteryIdCounter_].sizeOfLottery
+        );
+
+        emit RequestNumbers(lotteryIdCounter_, requestId_);
     }
 
     /**
@@ -287,8 +290,6 @@ contract Lottery is Ownable, Initializable {
             // Incrementing the tokenId counter
             ticketIdCounter_ += 1;
         }
-        // Emitting relevant info
-        emit InfoBatchMint(_to, ticketIdCounter_, _numberOfTickets, ticketIds);
         // Returns the token IDs of minted tokens
         return ticketIds;
     }
