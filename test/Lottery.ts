@@ -1,20 +1,35 @@
 import { expect } from "chai";
 import { ethers } from "hardhat";
+require("dotenv").config({ path: ".env" });
 
-describe("Lock", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshot in every test.
-  async function deployLotterySmartContract() {
-    // Contracts are deployed using the first signer/account by default
+describe("Lottery", function () {
+  let owner: any, A: any, B: any, C: any, D: any;
 
-    const [] = await ethers.getSigners();
+  let Lottery;
+  let lottery;
+  let RandomNumberGenerator;
+  let randomNumberGenerator;
 
-    const Lottery = await ethers.getContractFactory("Lottery");
-    const lottery = await Lottery.deploy(
+  beforeEach(async () => {
+    [owner, A, B, C] = await ethers.getSigners();
+    Lottery = await ethers.getContractFactory("Lottery");
+    lottery = await Lottery.deploy(
       "0x6A832387425887A12239bF361D56C33D535F746f",
       2,
       1
     );
-  }
+
+    RandomNumberGenerator = await ethers.getContractFactory(
+      "RandomNumberGenerator"
+    );
+
+    randomNumberGenerator = await RandomNumberGenerator.deploy(
+      6379,
+      lottery.address
+    );
+  });
+
+  it("Create new lotto", async function () {
+    expect(2).to.equal(2);
+  });
 });

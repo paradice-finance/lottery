@@ -2,8 +2,6 @@ import "@nomicfoundation/hardhat-toolbox";
 require("dotenv").config({ path: ".env" });
 const { GOERLI_DEPLOYER_PRIVATE_KEY, GEORLI_API_KEY } = process.env;
 
-console.log("test", GEORLI_API_KEY);
-
 module.exports = {
   defaultNetwork: "goerli",
   networks: {
