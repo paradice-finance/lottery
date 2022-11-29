@@ -8,6 +8,6 @@ interface ILottery {
     function numbersDrawn(
         uint256 _lotteryId,
         uint256 _requestId,
-        uint256 _randomIndex
+        uint256 _randomNumber
     ) external;
 }
