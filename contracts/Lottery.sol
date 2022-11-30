@@ -242,16 +242,16 @@ contract Lottery is Ownable, Initializable {
             // set affiliate address
             if (_affiliateAddress != address(0)) {
                 allAffiliate_[_affiliateAddress][lotteryIdCounter_] += 1;
-                emit Affiliate(
-                    _affiliateAddress,
-                    lotteryIdCounter_,
-                    allAffiliate_[_affiliateAddress][lotteryIdCounter_]
-                );
             }
         }
 
         // Emitting batch mint ticket with all information
         emit NewBatchMint(msg.sender, lotteryIdCounter_, ticketIds, msg.value);
+        emit Affiliate(
+            _affiliateAddress,
+            lotteryIdCounter_,
+            allAffiliate_[_affiliateAddress][lotteryIdCounter_]
+        );
 
         // check for drawing win ticket
         if (
