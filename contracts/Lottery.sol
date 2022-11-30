@@ -304,13 +304,11 @@ contract Lottery is Ownable, Initializable {
                     Status.Closed,
                 "Can't claim reward from unfinish round"
             );
-            uint256 ticketCount = allAffiliate_[msg.sender][
-                _listOfLotterryId[i]
-            ];
-            uint256 ticketPrice = allLotteries_[_listOfLotterryId[i]]
-                .ticketPrice;
 
-            uint256 totalClaimed = (ticketCount * ticketPrice) / 100;
+            // totalClaimed = ticket count * ticket price / 100
+            uint256 totalClaimed = (allAffiliate_[msg.sender][
+                _listOfLotterryId[i]
+            ] * allLotteries_[_listOfLotterryId[i]].ticketPrice) / 100;
 
             token_ = IERC20(allLotteries_[_listOfLotterryId[i]].tokenAddress);
             token_.transferFrom(address(this), msg.sender, totalClaimed);
