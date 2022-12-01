@@ -164,8 +164,12 @@ contract Lottery is Ownable, Initializable {
         totalCost = ticketPrice * _numberOfTickets;
     }
 
-    function setPrizeRatio(uint8 _prizeRatio) internal onlyOwner {
+    function setPrizeRatio(uint8 _prizeRatio) public onlyOwner {
         prizeRatio_ = _prizeRatio;
+    }
+
+    function setLotterySize(uint8 _sizeOfLottery) public onlyOwner {
+        sizeOfLottery_ = _sizeOfLottery;
     }
 
     function getBasicLottoInfo(uint256 _lotteryId)
