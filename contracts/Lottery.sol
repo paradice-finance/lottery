@@ -345,13 +345,18 @@ contract Lottery is Ownable, Initializable {
         emit RequestNumbers(lotteryIdCounter_, requestId_);
     }
 
-    function setRandomGeneratorAddress(address _randomGenerator)
-        public
-        onlyOwner
-    {
+    function claim(uint256 _lotteryId) public payable {
         // Checks lottery numbers have not already been drawn
-        require(_randomGenerator != address(0), "Incorrect address format");
+        require(
+            allLotteries_[_lotteryId].winningTicket.claimed == false,
+            "Incorrect address format"
+        );
 
-        randomGenerator_ = IRandomNumberGenerator(_randomGenerator);
+        allLotteries_[_lotteryId].winningTicket.claimed = true;
+        token_.transferFrom(
+            address(this),
+            msg.sender,
+            allLotteries_[_lotteryId].prizePoolInToken
+        );
     }
 }
