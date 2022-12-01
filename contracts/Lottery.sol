@@ -28,6 +28,8 @@ contract Lottery is Ownable, Initializable {
     uint256 private ticketPrice_;
     // all ticket in current round
     uint256[] private currentTickets_;
+    // all affiliate in current round
+    uint256 private sizeOfAffiliate_;
 
     // Represents the status of the lottery
     enum Status {
@@ -60,7 +62,6 @@ contract Lottery is Ownable, Initializable {
     mapping(uint256 => TicketInfo) internal allTickets_;
     // User address => Lottery ID => Ticket IDs
     mapping(address => mapping(uint256 => uint256[])) internal userTickets_;
-
     // Affiliate address => Lottery ID => Ticket Count
     mapping(address => mapping(uint256 => uint256)) internal allAffiliate_;
 
@@ -200,6 +201,14 @@ contract Lottery is Ownable, Initializable {
         emit LotteryOpen(lotteryId);
     }
 
+    function withdrawToken(
+        uint256 _amount,
+        address _tokenAddress
+    ) external onlyOwner {
+        token_ = IERC20(_tokenAddress);
+        token_.transferFrom(address(this), msg.sender, _amount);
+    }
+
     /**
      * @param  _ticketQty: The quantity of the ticket
      * @param  _chosenNumbersForEachTicket: Number of each ticket
@@ -220,8 +229,7 @@ contract Lottery is Ownable, Initializable {
             "Batch mint too large"
         );
 
-        uint256 ticketPrice = allLotteries_[lotteryIdCounter_].ticketPrice;
-        uint256 totalCost = ticketPrice * _ticketQty;
+        uint256 totalCost = ticketPrice_ * _ticketQty;
         // Transfers the required token to this contract
         token_.transferFrom(msg.sender, address(this), totalCost);
         // Batch mints the user their tickets
@@ -242,6 +250,8 @@ contract Lottery is Ownable, Initializable {
             // set affiliate address
             if (_affiliateAddress != address(0)) {
                 allAffiliate_[_affiliateAddress][lotteryIdCounter_] += 1;
+                // add affiliate size
+                sizeOfAffiliate_ += 1;
             }
         }
 
@@ -330,9 +340,14 @@ contract Lottery is Ownable, Initializable {
         // Requests a request number from the generator
         requestId_ = randomGenerator_.requestRandomNumber(
             lotteryIdCounter_,
-            allLotteries_[lotteryIdCounter_].sizeOfLottery
+            sizeOfLottery_
         );
 
         emit RequestNumbers(lotteryIdCounter_, requestId_);
+
+        // Send token to treasury address (5% - affiliate)
+        uint256 trasuryEquity = ((sizeOfLottery_ * ticketPrice_ * 5) -
+            (sizeOfAffiliate_ * ticketPrice_)) / 100;
+        token_.transferFrom(address(this), msg.sender, trasuryEquity);
     }
 }
