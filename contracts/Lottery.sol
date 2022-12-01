@@ -46,7 +46,7 @@ contract Lottery is Ownable, Initializable {
         address tokenAddress; // $token in current round
         uint8 sizeOfLottery; // Show how many tickets there are in one prize round
         uint256 ticketPrice; // Cost per ticket in $token
-        uint256 winningNumber; // Winning Number of current lotto
+        TicketInfo winningTicket; // Winning Number of current lotto
     }
 
     struct TicketInfo {
@@ -75,7 +75,7 @@ contract Lottery is Ownable, Initializable {
 
     event RequestNumbers(uint256 lotteryId, uint256 requestId);
 
-    event WinnigTicket(
+    event WinningTicket(
         uint256 lotteryId,
         uint256 ticketId,
         uint256 ticketNumber
@@ -121,6 +121,13 @@ contract Lottery is Ownable, Initializable {
         ticketIdCounter_ = 1;
         lotteryIdCounter_ = 1;
 
+        TicketInfo memory newTicket = TicketInfo(
+            0,
+            address(0),
+            false,
+            lotteryIdCounter_
+        );
+
         // init first lotto
         LottoInfo memory newLottery = LottoInfo(
             lotteryIdCounter_,
@@ -128,7 +135,7 @@ contract Lottery is Ownable, Initializable {
             address(token_),
             sizeOfLottery_,
             ticketPrice_,
-            0
+            newTicket
         );
 
         allLotteries_[lotteryIdCounter_] = newLottery;
@@ -189,6 +196,10 @@ contract Lottery is Ownable, Initializable {
         return userTickets_[_user][_lotteryId];
     }
 
+    function getAvaliableTicketQty() public view returns (uint256) {
+        return sizeOfLottery_ - currentTickets_.length;
+    }
+
     function createNewLotto() external returns (uint256 lotteryId) {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed
@@ -199,6 +210,14 @@ contract Lottery is Ownable, Initializable {
         // Incrementing lottery ID
         lotteryIdCounter_ += 1;
 
+        //Create empty ticket
+        TicketInfo memory newTicket = TicketInfo(
+            0,
+            address(0),
+            false,
+            lotteryIdCounter_
+        );
+
         // Saving data in struct
         LottoInfo memory newLottery = LottoInfo(
             lotteryIdCounter_,
@@ -206,7 +225,7 @@ contract Lottery is Ownable, Initializable {
             address(token_),
             sizeOfLottery_,
             ticketPrice_,
-            0
+            newTicket
         );
 
         allLotteries_[lotteryId] = newLottery;
@@ -289,17 +308,16 @@ contract Lottery is Ownable, Initializable {
         );
         require(requestId_ == _requestId, "invalid request id");
 
-        uint256 winningNumber = allTickets_[currentTickets_[_randomIndex]]
-            .number;
-
-        allLotteries_[lotteryIdCounter_].winningNumber = winningNumber;
+        allLotteries_[lotteryIdCounter_].winningTicket = allTickets_[
+            currentTickets_[_randomIndex]
+        ];
 
         allLotteries_[lotteryIdCounter_].lotteryStatus = Status.Completed;
 
-        emit WinnigTicket(
+        emit WinningTicket(
             lotteryIdCounter_,
             currentTickets_[_randomIndex],
-            winningNumber
+            allLotteries_[lotteryIdCounter_].winningTicket.number
         );
     }
 
@@ -356,7 +374,7 @@ contract Lottery is Ownable, Initializable {
 
         require(
             allLotteries_[_lotteryId].lotteryStatus == Status.Completed,
-            "Lottery State incorrect for draw"
+            "Winning Numbers not chosen yet"
         );
 
         require(
@@ -376,7 +394,7 @@ contract Lottery is Ownable, Initializable {
         ) {
             if (
                 userTickets_[msg.sender][_lotteryId][i] ==
-                allLotteries_[_lotteryId].winningNumber
+                allLotteries_[_lotteryId].winningTicket.number
             ) {
                 token_.transferFrom(
                     address(this),
