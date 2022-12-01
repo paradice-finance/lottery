@@ -29,6 +29,8 @@ contract Lottery is Ownable, Initializable {
     // all ticket in current round
     uint256[] private currentTickets_;
 
+    uint8 public prizeRatio_;
+
     // Represents the status of the lottery
     enum Status {
         NotStarted, // The lottery has not started yet
@@ -153,6 +155,10 @@ contract Lottery is Ownable, Initializable {
     {
         uint256 ticketPrice = allLotteries_[_lotteryId].ticketPrice;
         totalCost = ticketPrice * _numberOfTickets;
+    }
+
+    function setPrizeRatio(uint8 _prizeRatio) public onlyOwner {
+        prizeRatio_ = _prizeRatio;
     }
 
     function getBasicLottoInfo(uint256 _lotteryId)
@@ -345,18 +351,50 @@ contract Lottery is Ownable, Initializable {
         emit RequestNumbers(lotteryIdCounter_, requestId_);
     }
 
-    function claim(uint256 _lotteryId) public payable {
+    function claimWinReward(uint256 _lotteryId) external {
         // Checks lottery numbers have not already been drawn
+
         require(
-            allLotteries_[_lotteryId].winningTicket.claimed == false,
-            "Incorrect address format"
+            allLotteries_[_lotteryId].lotteryStatus == Status.Completed,
+            "Lottery State incorrect for draw"
         );
 
-        allLotteries_[_lotteryId].winningTicket.claimed = true;
-        token_.transferFrom(
-            address(this),
-            msg.sender,
-            allLotteries_[_lotteryId].prizePoolInToken
+        require(
+            userTickets_[msg.sender][_lotteryId].length > 0,
+            "Play did not buy ticket for this round."
         );
+
+        require(
+            allTickets_[allLotteries_[_lotteryId].winningNumber].claimed ==
+                false,
+            "The reward was claimed."
+        );
+
+        require(
+            userTickets_[msg.sender][_lotteryId].length > 0,
+            "Play did not buy ticket for this round."
+        );
+
+        for (
+            uint8 i = 0;
+            i < userTickets_[msg.sender][_lotteryId].length;
+            i++
+        ) {
+            if (
+                userTickets_[msg.sender][_lotteryId][i] ==
+                allLotteries_[_lotteryId].winningNumber
+            ) {
+                token_.transferFrom(
+                    address(this),
+                    msg.sender,
+                    (allLotteries_[_lotteryId].ticketPrice *
+                        allLotteries_[_lotteryId].sizeOfLottery *
+                        prizeRatio_) / 100
+                );
+
+                allTickets_[allLotteries_[_lotteryId].winningNumber]
+                    .claimed = true;
+            }
+        }
     }
 }
