@@ -245,15 +245,15 @@ contract Lottery is Ownable, Initializable {
         );
 
         require(_sizeOfLottery != 0, "Lottery size cannot be 0");
-        require(_ticketPrice != 0, "ticketPrice cannot be 0");
-        require(_token != address(0), "token address cannot be 0");
+        require(_ticketPrice != 0, "TicketPrice cannot be 0");
+        require(_token != address(0), "Token address cannot be 0");
         require(
             _treasuryRatio + _affiliateRatio + _winnerRatio == 100,
             "Ratio must be 100"
         );
         require(
             _treasuryRatio + _affiliateRatio <= 5,
-            "owner ratio can not exceed 5"
+            "Owner ratio can not exceed 5"
         );
 
         token_ = IERC20(_token);
@@ -371,7 +371,7 @@ contract Lottery is Ownable, Initializable {
             allLotteries_[_lotteryId].lotteryStatus == Status.Closed,
             "Draw numbers first"
         );
-        require(requestId_ == _requestId, "invalid request id");
+        require(requestId_ == _requestId, "Invalid request id");
 
         allLotteries_[lotteryIdCounter_].winningTicketId = currentTickets_[
             _randomIndex
@@ -425,7 +425,7 @@ contract Lottery is Ownable, Initializable {
         // Checks lottery numbers have not already been drawn
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Closed,
-            "Lottery State incorrect for draw"
+            "Lottery status must be closed for drawing winner"
         );
         // Requests a request number from the generator
         requestId_ = randomGenerator_.requestRandomNumber(
