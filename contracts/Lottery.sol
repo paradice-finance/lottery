@@ -111,12 +111,14 @@ contract Lottery is Ownable, Initializable {
     constructor(
         address _token,
         uint8 _sizeOfLotteryNumbers,
-        uint256 _ticketPrice
+        uint256 _ticketPrice,
+        address _treasuryAddress
     ) {
         require(_token != address(0), "Contracts cannot be 0 address");
         require(_sizeOfLotteryNumbers != 0, "Lottery setup cannot be 0");
 
         token_ = IERC20(_token);
+        treasuryAddress_ = _treasuryAddress;
         sizeOfLottery_ = _sizeOfLotteryNumbers;
         ticketPrice_ = _ticketPrice * 10 ** 18;
         ticketIdCounter_ = 1;
