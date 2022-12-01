@@ -151,7 +151,7 @@ contract Lottery is Ownable, Initializable {
 
         require(
             _treasuryRatio + _affiliateRatio <= 5,
-            "owner part can not exceed 5"
+            "owner ratio can not exceed 5"
         );
 
         token_ = IERC20(_token);
@@ -253,7 +253,7 @@ contract Lottery is Ownable, Initializable {
         );
         require(
             _treasuryRatio + _affiliateRatio <= 5,
-            "owner part can not exceed 5"
+            "owner ratio can not exceed 5"
         );
 
         token_ = IERC20(_token);
