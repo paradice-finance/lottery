@@ -435,7 +435,7 @@ contract Lottery is Ownable, Initializable {
 
         emit RequestNumbers(lotteryIdCounter_, requestId_);
 
-        // Send token to treasury address ()
+        // Send token to treasury address (treasuryEquity = treasury equity + unowned affiliate)
         uint256 treasuryEquity = ((sizeOfLottery_ *
             ticketPrice_ *
             treasuryRatio_) +
