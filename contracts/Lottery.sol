@@ -29,6 +29,8 @@ contract Lottery is Ownable, Initializable {
     // all ticket in current round
     uint256[] private currentTickets_;
 
+    uint8 private prizeRatio_;
+
     // Represents the status of the lottery
     enum Status {
         NotStarted, // The lottery has not started yet
@@ -44,7 +46,7 @@ contract Lottery is Ownable, Initializable {
         address tokenAddress; // $token in current round
         uint8 sizeOfLottery; // Show how many tickets there are in one prize round
         uint256 ticketPrice; // Cost per ticket in $token
-        uint256 winningNumber; // Winning Number of current lotto
+        uint256 winningTicketId; // Winning ticketId of current lotto
     }
 
     struct TicketInfo {
@@ -73,7 +75,7 @@ contract Lottery is Ownable, Initializable {
 
     event RequestNumbers(uint256 lotteryId, uint256 requestId);
 
-    event WinnigTicket(
+    event WinningTicket(
         uint256 lotteryId,
         uint256 ticketId,
         uint256 ticketNumber
@@ -152,6 +154,18 @@ contract Lottery is Ownable, Initializable {
         totalCost = ticketPrice * _numberOfTickets;
     }
 
+    function setPrizeRatio(uint8 _prizeRatio) public onlyOwner {
+        prizeRatio_ = _prizeRatio;
+    }
+
+    function setLotterySize(uint8 _sizeOfLottery) public onlyOwner {
+        sizeOfLottery_ = _sizeOfLottery;
+    }
+
+    function prizeRatio() public view returns (uint256) {
+        return prizeRatio_ / 100;
+    }
+
     function getBasicLottoInfo(
         uint256 _lotteryId
     ) external view returns (LottoInfo memory) {
@@ -173,6 +187,10 @@ contract Lottery is Ownable, Initializable {
         address _user
     ) external view returns (uint256[] memory) {
         return userTickets_[_user][_lotteryId];
+    }
+
+    function getAvaliableTicketQty() public view returns (uint256) {
+        return sizeOfLottery_ - currentTickets_.length;
     }
 
     function createNewLotto() external returns (uint256 lotteryId) {
@@ -275,17 +293,16 @@ contract Lottery is Ownable, Initializable {
         );
         require(requestId_ == _requestId, "invalid request id");
 
-        uint256 winningNumber = allTickets_[currentTickets_[_randomIndex]]
-            .number;
-
-        allLotteries_[lotteryIdCounter_].winningNumber = winningNumber;
+        allLotteries_[lotteryIdCounter_].winningTicketId = currentTickets_[
+            _randomIndex
+        ];
 
         allLotteries_[lotteryIdCounter_].lotteryStatus = Status.Completed;
 
-        emit WinnigTicket(
+        emit WinningTicket(
             lotteryIdCounter_,
             currentTickets_[_randomIndex],
-            winningNumber
+            allTickets_[currentTickets_[_randomIndex]].number
         );
     }
 
@@ -334,5 +351,33 @@ contract Lottery is Ownable, Initializable {
         );
 
         emit RequestNumbers(lotteryIdCounter_, requestId_);
+    }
+
+    function claimWinReward(uint256 _lotteryId, uint256 _ticketId) external {
+        // Checks lottery numbers have not already been drawn
+
+        require(
+            allLotteries_[_lotteryId].lotteryStatus == Status.Completed,
+            "Winning number is not chosen yet."
+        );
+
+        require(
+            msg.sender != allTickets_[_ticketId].owner,
+            "You are not ticket's owner."
+        );
+
+        require(
+            allTickets_[_ticketId].claimed == false,
+            "The reward was claimed."
+        );
+        allTickets_[_ticketId].claimed = true;
+
+        token_.transferFrom(
+            address(this),
+            msg.sender,
+            (allLotteries_[_lotteryId].ticketPrice *
+                allLotteries_[_lotteryId].sizeOfLottery *
+                prizeRatio())
+        );
     }
 }
