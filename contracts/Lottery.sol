@@ -205,14 +205,6 @@ contract Lottery is Ownable, Initializable {
         emit LotteryOpen(lotteryId);
     }
 
-    function withdrawToken(
-        uint256 _amount,
-        address _tokenAddress
-    ) external onlyOwner {
-        token_ = IERC20(_tokenAddress);
-        token_.transferFrom(address(this), msg.sender, _amount);
-    }
-
     /**
      * @param  _ticketQty: The quantity of the ticket
      * @param  _chosenNumbersForEachTicket: Number of each ticket
