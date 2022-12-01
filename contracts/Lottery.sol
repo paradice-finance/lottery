@@ -29,7 +29,7 @@ contract Lottery is Ownable, Initializable {
     // all ticket in current round
     uint256[] private currentTickets_;
 
-    uint8 public prizeRatio_;
+    uint8 private prizeRatio_;
 
     // Represents the status of the lottery
     enum Status {
@@ -157,7 +157,7 @@ contract Lottery is Ownable, Initializable {
         totalCost = ticketPrice * _numberOfTickets;
     }
 
-    function setPrizeRatio(uint8 _prizeRatio) public onlyOwner {
+    function setPrizeRatio(uint8 _prizeRatio) internal onlyOwner {
         prizeRatio_ = _prizeRatio;
     }
 
