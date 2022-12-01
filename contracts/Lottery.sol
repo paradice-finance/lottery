@@ -351,7 +351,7 @@ contract Lottery is Ownable, Initializable {
         emit RequestNumbers(lotteryIdCounter_, requestId_);
     }
 
-    function claimWinReward(uint256 _lotteryId) external {
+    function claimWinReward(uint256 _lotteryId, uint256 _ticketId) external {
         // Checks lottery numbers have not already been drawn
 
         require(
@@ -360,19 +360,13 @@ contract Lottery is Ownable, Initializable {
         );
 
         require(
-            userTickets_[msg.sender][_lotteryId].length > 0,
-            "Play did not buy ticket for this round."
+            msg.sender != allTickets_[_ticketId].owner,
+            "You are not ticket's owner."
         );
 
         require(
-            allTickets_[allLotteries_[_lotteryId].winningNumber].claimed ==
-                false,
+            allTickets_[_ticketId].claimed == false,
             "The reward was claimed."
-        );
-
-        require(
-            userTickets_[msg.sender][_lotteryId].length > 0,
-            "Play did not buy ticket for this round."
         );
 
         for (
@@ -392,8 +386,7 @@ contract Lottery is Ownable, Initializable {
                         prizeRatio_) / 100
                 );
 
-                allTickets_[allLotteries_[_lotteryId].winningNumber]
-                    .claimed = true;
+                allTickets_[_ticketId].claimed = true;
             }
         }
     }
