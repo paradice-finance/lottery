@@ -352,7 +352,7 @@ contract Lottery is Ownable, Initializable {
         // Send token to treasury address (5% - affiliate)
         uint256 trasuryEquity = ((sizeOfLottery_ * ticketPrice_ * 5) -
             (sizeOfAffiliate_ * ticketPrice_)) / 100;
-        uint256 sizeOfAffiliate_ = 0;
+        sizeOfAffiliate_ = 0;
         token_.transferFrom(address(this), treasuryAddress_, trasuryEquity);
     }
 }
