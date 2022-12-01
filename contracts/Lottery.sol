@@ -172,6 +172,10 @@ contract Lottery is Ownable, Initializable {
         sizeOfLottery_ = _sizeOfLottery;
     }
 
+    function prizeRatio() public view returns (uint256) {
+        return prizeRatio_ / 100;
+    }
+
     function getBasicLottoInfo(uint256 _lotteryId)
         external
         view
@@ -391,25 +395,13 @@ contract Lottery is Ownable, Initializable {
             "The reward was claimed."
         );
 
-        for (
-            uint8 i = 0;
-            i < userTickets_[msg.sender][_lotteryId].length;
-            i++
-        ) {
-            if (
-                userTickets_[msg.sender][_lotteryId][i] ==
-                allLotteries_[_lotteryId].winningTicket.number
-            ) {
-                token_.transferFrom(
-                    address(this),
-                    msg.sender,
-                    (allLotteries_[_lotteryId].ticketPrice *
-                        allLotteries_[_lotteryId].sizeOfLottery *
-                        prizeRatio_) / 100
-                );
-
-                allTickets_[_ticketId].claimed = true;
-            }
-        }
+        token_.transferFrom(
+            address(this),
+            msg.sender,
+            (allLotteries_[_lotteryId].ticketPrice *
+                allLotteries_[_lotteryId].sizeOfLottery *
+                prizeRatio())
+        );
+        allTickets_[_ticketId].claimed = true;
     }
 }
