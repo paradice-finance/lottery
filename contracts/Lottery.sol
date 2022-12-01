@@ -394,6 +394,7 @@ contract Lottery is Ownable, Initializable {
             allTickets_[_ticketId].claimed == false,
             "The reward was claimed."
         );
+        allTickets_[_ticketId].claimed = true;
 
         token_.transferFrom(
             address(this),
@@ -402,6 +403,5 @@ contract Lottery is Ownable, Initializable {
                 allLotteries_[_lotteryId].sizeOfLottery *
                 prizeRatio())
         );
-        allTickets_[_ticketId].claimed = true;
     }
 }
