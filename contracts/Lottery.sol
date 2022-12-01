@@ -14,6 +14,8 @@ contract Lottery is Ownable, Initializable {
     // State variables
     // Instance of xx token (collateral currency for lotto)
     IERC20 internal token_;
+    // Treasury Address
+    address private treasuryAddress_;
     // Storing of the randomness generator
     IRandomNumberGenerator internal randomGenerator_;
     // Request ID for random number
@@ -348,6 +350,6 @@ contract Lottery is Ownable, Initializable {
         // Send token to treasury address (5% - affiliate)
         uint256 trasuryEquity = ((sizeOfLottery_ * ticketPrice_ * 5) -
             (sizeOfAffiliate_ * ticketPrice_)) / 100;
-        token_.transferFrom(address(this), msg.sender, trasuryEquity);
+        token_.transferFrom(address(this), treasuryAddress_, trasuryEquity);
     }
 }
