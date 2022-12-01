@@ -3,9 +3,8 @@ pragma solidity ^0.8.17;
 
 import "./ILottery.sol";
 
-contract RandomNumberGenerator is  {
+contract RandomNumberGenerator {
     uint256 private constant ROLL_IN_PROGRESS = 9999;
-
 
     // Your subscription ID.
     uint64 s_subscriptionId;
@@ -29,10 +28,7 @@ contract RandomNumberGenerator is  {
         _;
     }
 
-    constructor(
-        uint64 subscriptionId,
-        address _lottery
-    ) {
+    constructor(uint64 subscriptionId, address _lottery) {
         lottery = _lottery;
         s_owner = msg.sender;
         s_subscriptionId = subscriptionId;
@@ -45,15 +41,15 @@ contract RandomNumberGenerator is  {
         uint256 lotteryId_,
         uint256 _round_size
     ) public onlyLottery returns (uint256 requestId) {
-        requestId = 123456789;
-        fulfillRandomWords(requestId,[123312123]);
+        requestId = uint256(keccak256(abi.encodePacked(block.timestamp)));
+        fulfillRandomWords(requestId, requestId);
     }
 
     function fulfillRandomWords(
         uint256 requestId,
-        uint256[] memory randomWords
-    ) internal override {
-        uint256 randomValue = randomWords[0] % round_size;
+        uint256 randomWords
+    ) internal {
+        uint256 randomValue = randomWords % round_size;
         round_result[requestId] = randomValue;
         emit TicketResulted(requestId, randomValue);
     }
