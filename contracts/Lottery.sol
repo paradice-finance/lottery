@@ -14,6 +14,8 @@ contract Lottery is Ownable, Initializable {
     // State variables
     // Instance of xx token (collateral currency for lotto)
     IERC20 internal token_;
+    // Treasury Address
+    address private treasuryAddress_;
     // Storing of the randomness generator
     IRandomNumberGenerator internal randomGenerator_;
     // Request ID for random number
@@ -28,6 +30,8 @@ contract Lottery is Ownable, Initializable {
     uint256 private ticketPrice_;
     // all ticket in current round
     uint256[] private currentTickets_;
+    // all affiliate in current round
+    uint256 private sizeOfAffiliate_;
 
     uint8 private prizeRatio_;
 
@@ -62,7 +66,6 @@ contract Lottery is Ownable, Initializable {
     mapping(uint256 => TicketInfo) internal allTickets_;
     // User address => Lottery ID => Ticket IDs
     mapping(address => mapping(uint256 => uint256[])) internal userTickets_;
-
     // Affiliate address => Lottery ID => Ticket Count
     mapping(address => mapping(uint256 => uint256)) internal allAffiliate_;
 
@@ -110,12 +113,14 @@ contract Lottery is Ownable, Initializable {
     constructor(
         address _token,
         uint8 _sizeOfLotteryNumbers,
-        uint256 _ticketPrice
+        uint256 _ticketPrice,
+        address _treasuryAddress
     ) {
         require(_token != address(0), "Contracts cannot be 0 address");
         require(_sizeOfLotteryNumbers != 0, "Lottery setup cannot be 0");
 
         token_ = IERC20(_token);
+        treasuryAddress_ = _treasuryAddress;
         sizeOfLottery_ = _sizeOfLotteryNumbers;
         ticketPrice_ = _ticketPrice * 10 ** 18;
         ticketIdCounter_ = 1;
@@ -238,8 +243,7 @@ contract Lottery is Ownable, Initializable {
             "Batch mint too large"
         );
 
-        uint256 ticketPrice = allLotteries_[lotteryIdCounter_].ticketPrice;
-        uint256 totalCost = ticketPrice * _ticketQty;
+        uint256 totalCost = ticketPrice_ * _ticketQty;
         // Transfers the required token to this contract
         token_.transferFrom(msg.sender, address(this), totalCost);
         // Batch mints the user their tickets
@@ -260,6 +264,8 @@ contract Lottery is Ownable, Initializable {
             // set affiliate address
             if (_affiliateAddress != address(0)) {
                 allAffiliate_[_affiliateAddress][lotteryIdCounter_] += 1;
+                // add affiliate size
+                sizeOfAffiliate_ += 1;
             }
         }
 
@@ -347,10 +353,16 @@ contract Lottery is Ownable, Initializable {
         // Requests a request number from the generator
         requestId_ = randomGenerator_.requestRandomNumber(
             lotteryIdCounter_,
-            allLotteries_[lotteryIdCounter_].sizeOfLottery
+            sizeOfLottery_
         );
 
         emit RequestNumbers(lotteryIdCounter_, requestId_);
+
+        // Send token to treasury address (5% - affiliate)
+        uint256 trasuryEquity = ((sizeOfLottery_ * ticketPrice_ * 5) -
+            (sizeOfAffiliate_ * ticketPrice_)) / 100;
+        sizeOfAffiliate_ = 0;
+        token_.transferFrom(address(this), treasuryAddress_, trasuryEquity);
     }
 
     function claimWinReward(uint256 _lotteryId, uint256 _ticketId) external {
