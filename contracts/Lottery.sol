@@ -150,7 +150,7 @@ contract Lottery is Ownable, Initializable {
         );
 
         require(
-            _treasuryRatio + _affiliateRatio == 5,
+            _treasuryRatio + _affiliateRatio <= 5,
             "owner part can not exceed 5"
         );
 
@@ -252,7 +252,7 @@ contract Lottery is Ownable, Initializable {
             "Ratio must be 100"
         );
         require(
-            _treasuryRatio + _affiliateRatio == 5,
+            _treasuryRatio + _affiliateRatio <= 5,
             "owner part can not exceed 5"
         );
 
