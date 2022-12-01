@@ -61,6 +61,9 @@ contract Lottery is Ownable, Initializable {
     // User address => Lottery ID => Ticket IDs
     mapping(address => mapping(uint256 => uint256[])) internal userTickets_;
 
+    // Affiliate address => Lottery ID => Ticket Count
+    mapping(address => mapping(uint256 => uint256)) internal allAffiliate_;
+
     event NewBatchMint(
         address indexed minter,
         uint256 lotteryId,
@@ -79,6 +82,14 @@ contract Lottery is Ownable, Initializable {
     event LotteryOpen(uint256 lotteryId);
 
     event LotteryClose(uint256 lotteryId);
+
+    event Affiliate(
+        address affiliateAddress,
+        uint256 lotteryId,
+        uint256 ticketCount
+    );
+
+    event ClaimedAffiliate(address affiliateAddress, uint256[] lotteryIds);
 
     modifier notContract() {
         require(!address(msg.sender).isContract(), "contract not allowed");
@@ -195,7 +206,8 @@ contract Lottery is Ownable, Initializable {
      */
     function batchBuyLottoTicket(
         uint8 _ticketQty,
-        uint16[] calldata _chosenNumbersForEachTicket
+        uint16[] calldata _chosenNumbersForEachTicket,
+        address payable _affiliateAddress
     ) external payable notContract {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Open,
@@ -227,10 +239,19 @@ contract Lottery is Ownable, Initializable {
             userTickets_[msg.sender][lotteryIdCounter_].push(ticketIdCounter_);
             // Incrementing the tokenId counter
             ticketIdCounter_ += 1;
+            // set affiliate address
+            if (_affiliateAddress != address(0)) {
+                allAffiliate_[_affiliateAddress][lotteryIdCounter_] += 1;
+            }
         }
 
         // Emitting batch mint ticket with all information
         emit NewBatchMint(msg.sender, lotteryIdCounter_, ticketIds, msg.value);
+        emit Affiliate(
+            _affiliateAddress,
+            lotteryIdCounter_,
+            allAffiliate_[_affiliateAddress][lotteryIdCounter_]
+        );
 
         // check for drawing win ticket
         if (
@@ -266,6 +287,36 @@ contract Lottery is Ownable, Initializable {
             currentTickets_[_randomIndex],
             winningNumber
         );
+    }
+
+    /**
+     * @param  _listOfLotterryId: all LotteryId that want to claim reward
+     */
+    function claimAffiliate(
+        uint16[] calldata _listOfLotterryId
+    ) external payable {
+        uint256[] memory claimedLotteryIds = new uint256[](
+            _listOfLotterryId.length
+        );
+        for (uint256 i = 0; i < _listOfLotterryId.length; i++) {
+            require(
+                allLotteries_[_listOfLotterryId[i]].lotteryStatus ==
+                    Status.Closed,
+                "Can't claim reward from unfinish round"
+            );
+
+            // totalClaimed = ticket count * ticket price / 100
+            uint256 totalClaimed = (allAffiliate_[msg.sender][
+                _listOfLotterryId[i]
+            ] * allLotteries_[_listOfLotterryId[i]].ticketPrice) / 100;
+
+            token_ = IERC20(allLotteries_[_listOfLotterryId[i]].tokenAddress);
+            token_.transferFrom(address(this), msg.sender, totalClaimed);
+
+            allAffiliate_[msg.sender][_listOfLotterryId[i]] = 0;
+            claimedLotteryIds[i] = _listOfLotterryId[i];
+        }
+        emit ClaimedAffiliate(msg.sender, claimedLotteryIds);
     }
 
     receive() external payable {}
