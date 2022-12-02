@@ -3,7 +3,7 @@ require("dotenv").config({ path: ".env" });
 const { GOERLI_DEPLOYER_PRIVATE_KEY, GEORLI_API_KEY } = process.env;
 
 module.exports = {
-  defaultNetwork: "goerli",
+  defaultNetwork: "hardhat",
   networks: {
     goerli: {
       url: `https://eth-goerli.g.alchemy.com/v2/${GEORLI_API_KEY}`,
