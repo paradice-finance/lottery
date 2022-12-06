@@ -1,18 +1,18 @@
-import { ethers } from "hardhat";
+import { ethers } from 'hardhat';
 
 const { SUBSCRIPTION_ID } = process.env;
 async function main() {
-  const MockToken = await ethers.getContractFactory("MockToken");
+  const MockToken = await ethers.getContractFactory('MockToken');
 
   const token = await MockToken.deploy();
   try {
     await token.deployed();
-    console.log("Token address:", token.address);
+    console.log('Token address:', token.address);
   } catch (error: any) {
     console.log(`Deploy Error: ${error.message}`);
   }
 
-  const Lottery = await ethers.getContractFactory("Lottery");
+  const Lottery = await ethers.getContractFactory('Lottery');
 
   const lottery = await Lottery.deploy(
     token.address,
@@ -23,13 +23,13 @@ async function main() {
 
   try {
     await lottery.deployed();
-    console.log("lottery address:", lottery.address);
+    console.log('lottery address:', lottery.address);
   } catch (error: any) {
     console.log(`Lottery Deploy Error: ${error.message}`);
   }
 
   const RandomNumberGenerator = await ethers.getContractFactory(
-    "MockRandomNumberGenerator"
+    'MockRandomNumberGenerator'
   );
 
   const randomNumberGenerator = await RandomNumberGenerator.deploy(
@@ -39,14 +39,10 @@ async function main() {
 
   try {
     await randomNumberGenerator.deployed();
-<<<<<<< HEAD
-    console.log("RandomNumberGenerator address:", lottery.address);
-=======
     console.log(
-      "RandomNumberGenerator address:",
+      'RandomNumberGenerator address:',
       randomNumberGenerator.address
     );
->>>>>>> 2f885e6 (add deployfile)
   } catch (error: any) {
     console.log(`Lottery Deploy Error: ${error.message}`);
   }
