@@ -423,7 +423,7 @@ contract Lottery is Ownable, Initializable {
             allAffiliate_[msg.sender][_listOfLotterryId[i]] = 0;
             claimedLotteryIds[i] = _listOfLotterryId[i];
         }
-        emit ClaimedAffiliate(pmsg.sender, claimedLotteryIds);
+        emit ClaimedAffiliate(msg.sender, claimedLotteryIds);
     }
 
     receive() external payable {}
