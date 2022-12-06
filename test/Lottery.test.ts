@@ -74,14 +74,15 @@ describe('Lottery', function () {
   /  - Should revert when current lotteryStatus is not Open
   /  - Should revert when buying ticket quantity > available tickets 
   /  - Should revert when invalid _chosenNumbersForEachTicket
+  /  - Should revert when buyer don't have enough token for transfer
   /  - Should emit event NewBatchMint and Affiliate when success
   /  - Should emit event LotteryClose when fully sell tickets
-  /  - Should emit event RequestNumbers when fully sell tickets and call drawWinningTicket()
   */
 
   /* Drawing winning ticket
   /  - Should revert when current lotteryStatus is not Closed
   /  - Should transfer to treasury address equal to pool - aff - winner
+  /  - Should emit event RequestNumbers when success
   */
 
   /* Numbers draw 
