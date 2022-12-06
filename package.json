@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "npx hardhat test",
-    "deploy:test": "npx hardhat run --network goerli deploy-test.ts"
+    "deploy:test": "npx hardhat run --network goerli deploy-test.ts",
+    "format:contracts": "prettier --config prettierrc.json -c ./contracts"
   },
   "repository": {
     "type": "git",

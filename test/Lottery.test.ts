@@ -47,8 +47,26 @@ describe('Lottery', function () {
   /  - Should revert when current lotteryStatus is not Open
   /  - Should revert when buying ticket quantity > available tickets 
   /  - Should revert when invalid _chosenNumbersForEachTicket
-  /  - Should emit NewBatchMint and Affiliate when success
-  /  - Should emit LotteryClose when fully sell tickets
-  /  - Should emit RequestNumbers when fully sell tickets and call drawWinningTicket()
+  /  - Should emit event NewBatchMint and Affiliate when success
+  /  - Should emit event LotteryClose when fully sell tickets
+  /  - Should emit event RequestNumbers when fully sell tickets and call drawWinningTicket()
+  */
+
+  /* Drawing winning ticket
+  /  - Should revert when current lotteryStatus is not Closed
+  /  - Should transfer to treasury address equal to pool - aff - winner
+  */
+
+  /* Numbers draw 
+  /  - Should revert when current lotteryStatus is not Closed
+  /  - Should revert when invalid _requestId
+  /  - Should update lottery status to "Completed" when success
+  /  - Should emit event WinningTicket when success
+  */
+
+  /* Claim Affiliate
+  /  - Should revert when lotteryStatus is not Completed
+  /  - should not transfer when total claim is zero
+  /  - Should emit event ClaimedAffiliate when success
   */
 });

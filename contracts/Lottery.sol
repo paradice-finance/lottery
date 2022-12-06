@@ -373,7 +373,7 @@ contract Lottery is Ownable, Initializable {
     ) external onlyRandomGenerator {
         require(
             allLotteries_[_lotteryId].lotteryStatus == Status.Closed,
-            "Draw numbers first"
+            "Can not draw when not in closed status"
         );
         require(requestId_ == _requestId, "Invalid request id");
 
@@ -402,7 +402,7 @@ contract Lottery is Ownable, Initializable {
         for (uint256 i = 0; i < _listOfLotterryId.length; i++) {
             require(
                 allLotteries_[_listOfLotterryId[i]].lotteryStatus ==
-                    Status.Closed,
+                    Status.Completed,
                 "Can't claim reward from unfinish round"
             );
 
@@ -415,12 +415,15 @@ contract Lottery is Ownable, Initializable {
                     .affiliateRatio) / 100;
 
             token_ = IERC20(allLotteries_[_listOfLotterryId[i]].tokenAddress);
-            token_.transferFrom(address(this), msg.sender, totalClaimed);
-
+            if(totalClaimed > 0) {
+                token_.transferFrom(address(this), msg.sender, totalClaimed);
+            }
+            
+            // reset ticket count of lottery id index i to 0 
             allAffiliate_[msg.sender][_listOfLotterryId[i]] = 0;
             claimedLotteryIds[i] = _listOfLotterryId[i];
         }
-        emit ClaimedAffiliate(msg.sender, claimedLotteryIds);
+        emit ClaimedAffiliate(pmsg.sender, claimedLotteryIds);
     }
 
     receive() external payable {}
