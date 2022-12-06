@@ -3,7 +3,7 @@ pragma solidity ^0.8.17;
 
 import "./ILottery.sol";
 
-contract RandomNumberGenerator {
+contract MockRandomNumberGenerator {
     uint256 private constant ROLL_IN_PROGRESS = 9999;
 
     // Your subscription ID.
@@ -40,7 +40,8 @@ contract RandomNumberGenerator {
     function requestRandomNumber(
         uint256 lotteryId_,
         uint256 _round_size
-    ) public onlyLottery returns (uint256 requestId) {
+    ) public returns (uint256 requestId) {
+        round_size = _round_size;
         requestId = uint256(keccak256(abi.encodePacked(block.timestamp)));
         fulfillRandomWords(requestId, requestId);
     }
