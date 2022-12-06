@@ -99,6 +99,8 @@ contract Lottery is Ownable, Initializable {
         uint256 ticketNumber
     );
 
+    event ConfigLottery(address token, uint8 sizeOfLottery, uint256 ticketPrice, uint8 winnerRatio,uint8 treasuryRatio, uint8  affiliateRatio)
+
     event LotteryOpen(uint256 lotteryId);
 
     event LotteryClose(uint256 lotteryId);
@@ -232,38 +234,6 @@ contract Lottery is Ownable, Initializable {
         return sizeOfLottery_ - currentTickets_.length;
     }
 
-    function configNewLotto(
-        address _token,
-        uint8 _sizeOfLottery,
-        uint256 _ticketPrice,
-        uint8 _winnerRatio,
-        uint8 _treasuryRatio,
-        uint8 _affiliateRatio
-    ) external onlyOwner {
-        require(
-            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed
-        );
-
-        require(_sizeOfLottery != 0, "Lottery size cannot be 0");
-        require(_ticketPrice != 0, "TicketPrice cannot be 0");
-        require(_token != address(0), "Token address cannot be 0");
-        require(
-            _treasuryRatio + _affiliateRatio + _winnerRatio == 100,
-            "Ratio must be 100"
-        );
-        require(
-            _treasuryRatio + _affiliateRatio <= 5,
-            "Owner ratio can not exceed 5"
-        );
-
-        token_ = IERC20(_token);
-        sizeOfLottery_ = _sizeOfLottery;
-        ticketPrice_ = _ticketPrice;
-        winnerRatio_ = _winnerRatio;
-        treasuryRatio_ = _treasuryRatio;
-        affiliateRatio_ = _affiliateRatio;
-    }
-
     function createNewLotto() external onlyOwner returns (uint256 lotteryId) {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed,
@@ -295,6 +265,40 @@ contract Lottery is Ownable, Initializable {
         allLotteries_[lotteryId] = newLottery;
         // Emitting important information around new lottery.
         emit LotteryOpen(lotteryId);
+    }
+
+    function configNewLotto(
+        address _token,
+        uint8 _sizeOfLottery,
+        uint256 _ticketPrice,
+        uint8 _winnerRatio,
+        uint8 _treasuryRatio,
+        uint8 _affiliateRatio
+    ) external onlyOwner {
+        require(
+            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed
+        );
+
+        require(_sizeOfLottery != 0, "Lottery size cannot be 0");
+        require(_ticketPrice != 0, "TicketPrice cannot be 0");
+        require(_token != address(0), "Token address cannot be 0");
+        require(
+            _treasuryRatio + _affiliateRatio + _winnerRatio == 100,
+            "Ratio must be 100"
+        );
+        require(
+            _treasuryRatio + _affiliateRatio <= 5,
+            "Owner ratio can not exceed 5"
+        );
+
+        token_ = IERC20(_token);
+        sizeOfLottery_ = _sizeOfLottery;
+        ticketPrice_ = _ticketPrice;
+        winnerRatio_ = _winnerRatio;
+        treasuryRatio_ = _treasuryRatio;
+        affiliateRatio_ = _affiliateRatio;
+
+        event ConfigLottery(token_,sizeOfLottery_,ticketPrice_,winnerRatio_,treasuryRatio_,affiliateRatio_ )
     }
 
     /**
