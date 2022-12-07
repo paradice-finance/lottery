@@ -28,13 +28,13 @@ describe("Lottery", function () {
   });
 
   /* RequestRandomNumber tests 
-  /  - Should revert when sending wrong argument.
-  /  - Should revert when not called by lottery address.
+  /  - Should revert when send invalid lotteryId.
+  /  - Should revert when send invalid roundSize input.
+  /  - Should revert when not called by Lottery address.
   /  - Should emit when received requestId from LINK. 
   */
 
   /* FulfillRandomWords tests 
-  /  - Should revert when sending wrong argument.
   /  - Should revert when not called by LINK SmartContract.
   / - Should revert when random value greater than or equal round size.
   */

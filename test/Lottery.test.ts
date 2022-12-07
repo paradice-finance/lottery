@@ -93,7 +93,8 @@ describe("Lottery", function () {
   */
 
   /* ClaimWinReward tests
-  /  - Should revert when sending wrong argument.
+  / .- Should revert when send invalid lotteryId
+  /  - Should revert when send invalid ticketId
   /  - Should revert when lotto status is not "completed".
   /  - Should revert when sender is not ticket owner.
   /  - Should revert when winner claim twice.

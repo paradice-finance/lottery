@@ -421,6 +421,16 @@ contract Lottery is Ownable, Initializable {
     ) external payable {
         // Checks lottery numbers have not already been drawn
         require(
+            allLotteries_[_lotteryId].lotteryID != 0,
+            "Invalid lotteryId."
+        );
+
+        require(
+            allTickets_[_ticketId].number != 0,
+            "Invalid ticketId."
+        );
+        
+        require(
             allLotteries_[_lotteryId].lotteryStatus == Status.Completed,
             "Winning number is not chosen yet."
         );
