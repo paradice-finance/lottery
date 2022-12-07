@@ -14,7 +14,7 @@ require("solidity-coverage");
 // eslint-disable-next-line node/no-path-concat
 dotenv.config({ path: __dirname + "/.env" });
 
-const { GEORLI_API_KEY, GEORLI_DEPLOYER_PRIVATE_KEY } = process.env;
+const { GOERLI_API_KEY, GOERLI_DEPLOYER_PRIVATE_KEY } = process.env;
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
   solidity: {
@@ -35,8 +35,8 @@ const config: HardhatUserConfig = {
 
   networks: {
     goerli: {
-      url: `https://eth-goerli.g.alchemy.com/v2/${GEORLI_API_KEY}`,
-      accounts: [GEORLI_DEPLOYER_PRIVATE_KEY!!],
+      url: `https://eth-goerli.g.alchemy.com/v2/${GOERLI_API_KEY}`,
+      accounts: [GOERLI_DEPLOYER_PRIVATE_KEY!!],
     },
     polygon_mainnet: {
       url: process.env.POLYGON_URL || "",
