@@ -419,7 +419,7 @@ contract Lottery is Ownable, Initializable {
         uint256 _lotteryId,
         uint256 _ticketId
     ) external payable {
-        // Checks lottery numbers have not already been drawn
+        
         require(
             allLotteries_[_lotteryId].lotteryID != 0,
             "Invalid lotteryId."
@@ -430,6 +430,7 @@ contract Lottery is Ownable, Initializable {
             "Invalid ticketId."
         );
         
+        // Checks lottery numbers have not already been drawn
         require(
             allLotteries_[_lotteryId].lotteryStatus == Status.Completed,
             "Winning number is not chosen yet."
