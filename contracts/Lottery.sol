@@ -118,6 +118,7 @@ contract Lottery is Ownable, Initializable {
         uint256 ticketCount
     );
 
+    event ClaimWinReward(address winnerAddress, uint256 ticketId, uint256 lotteryId);
     event ClaimedAffiliate(address affiliateAddress, uint256[] lotteryIds);
 
     //-------------------------------------------------------------------------
@@ -412,6 +413,38 @@ contract Lottery is Ownable, Initializable {
             currentTickets_[_randomIndex],
             allTickets_[currentTickets_[_randomIndex]].number
         );
+    }
+
+    function claimWinReward(
+        uint256 _lotteryId,
+        uint256 _ticketId
+    ) external payable {
+        // Checks lottery numbers have not already been drawn
+        require(
+            allLotteries_[_lotteryId].lotteryStatus == Status.Completed,
+            "Winning number is not chosen yet."
+        );
+
+        require(
+            msg.sender != allTickets_[_ticketId].owner,
+            "You are not ticket's owner."
+        );
+
+        require(
+            allTickets_[_ticketId].claimed == false,
+            "The reward was claimed."
+        );
+        allTickets_[_ticketId].claimed = true;
+
+        token_.transferFrom(
+            address(this),
+            msg.sender,
+            (allLotteries_[_lotteryId].ticketPrice *
+                allLotteries_[_lotteryId].sizeOfLottery *
+                winnerRatio_) / 100
+        );
+
+        emit ClaimWinReward(msg.sender, _ticketId, _lotteryId)
     }
 
     /**

@@ -97,6 +97,7 @@ describe("Lottery", function () {
   /  - Should revert when lotto status is not "completed".
   /  - Should revert when sender is not ticket owner.
   /  - Should revert when winner claim twice.
+  /  - Should revert when can't transfer token to winner.
   /  - Should emit when transfer token to winner.
   */
 

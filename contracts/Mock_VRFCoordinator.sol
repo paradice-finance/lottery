@@ -17,7 +17,7 @@ contract Mock_VRFCoordinator is VRFCoordinatorV2Mock {
         address _linkToken,
         bytes32 _keyHash,
         uint256 _fee
-    ) public VRFCoordinatorMock(_linkToken) {
+    ) public VRFCoordinatorV2Mock(_linkToken) {
         keyHash = _keyHash;
         fee = _fee;
     }
