@@ -31,11 +31,12 @@ describe("Lottery", function () {
   /  - Should revert when send invalid lotteryId.
   /  - Should revert when send invalid roundSize input.
   /  - Should revert when not called by Lottery address.
-  /  - Should emit when received requestId from LINK. 
+  /  - Should emit event requestRandomNumber when success. 
   */
 
   /* FulfillRandomWords tests 
   /  - Should revert when not called by LINK SmartContract.
-  / - Should revert when random value greater than or equal round size.
+  /  - Should revert when random value greater than or equal round size.
+  / . - Should emit event fulfillRandomWords when success.
   */
 });
