@@ -1,7 +1,7 @@
-import { ethers } from 'hardhat';
+import { ethers } from "hardhat";
 
 async function main() {
-  const Lottery = await ethers.getContractFactory('Lottery');
+  const Lottery = await ethers.getContractFactory("Lottery");
   const lottery = await Lottery.deploy();
 
   await lottery.deployed();

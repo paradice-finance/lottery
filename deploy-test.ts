@@ -39,7 +39,10 @@ async function main() {
 
   try {
     await randomNumberGenerator.deployed();
-    console.log("RandomNumberGenerator address:", lottery.address);
+    console.log(
+      "RandomNumberGenerator address:",
+      randomNumberGenerator.address
+    );
   } catch (error: any) {
     console.log(`Lottery Deploy Error: ${error.message}`);
   }

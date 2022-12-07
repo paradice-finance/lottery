@@ -99,6 +99,8 @@ contract Lottery is Ownable, Initializable {
         uint256 ticketNumber
     );
 
+    event ConfigLottery(address token, uint8 sizeOfLottery, uint256 ticketPrice, uint8 winnerRatio,uint8 treasuryRatio, uint8  affiliateRatio)
+
     event LotteryOpen(uint256 lotteryId);
 
     event LotteryClose(uint256 lotteryId);
@@ -232,38 +234,6 @@ contract Lottery is Ownable, Initializable {
         return sizeOfLottery_ - currentTickets_.length;
     }
 
-    function configNewLotto(
-        address _token,
-        uint8 _sizeOfLottery,
-        uint256 _ticketPrice,
-        uint8 _winnerRatio,
-        uint8 _treasuryRatio,
-        uint8 _affiliateRatio
-    ) external onlyOwner {
-        require(
-            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed
-        );
-
-        require(_sizeOfLottery != 0, "Lottery size cannot be 0");
-        require(_ticketPrice != 0, "TicketPrice cannot be 0");
-        require(_token != address(0), "Token address cannot be 0");
-        require(
-            _treasuryRatio + _affiliateRatio + _winnerRatio == 100,
-            "Ratio must be 100"
-        );
-        require(
-            _treasuryRatio + _affiliateRatio <= 5,
-            "Owner ratio can not exceed 5"
-        );
-
-        token_ = IERC20(_token);
-        sizeOfLottery_ = _sizeOfLottery;
-        ticketPrice_ = _ticketPrice;
-        winnerRatio_ = _winnerRatio;
-        treasuryRatio_ = _treasuryRatio;
-        affiliateRatio_ = _affiliateRatio;
-    }
-
     function createNewLotto() external onlyOwner returns (uint256 lotteryId) {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed,
@@ -295,6 +265,40 @@ contract Lottery is Ownable, Initializable {
         allLotteries_[lotteryId] = newLottery;
         // Emitting important information around new lottery.
         emit LotteryOpen(lotteryId);
+    }
+
+    function configNewLotto(
+        address _token,
+        uint8 _sizeOfLottery,
+        uint256 _ticketPrice,
+        uint8 _winnerRatio,
+        uint8 _treasuryRatio,
+        uint8 _affiliateRatio
+    ) external onlyOwner {
+        require(
+            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed
+        );
+
+        require(_sizeOfLottery != 0, "Lottery size cannot be 0");
+        require(_ticketPrice != 0, "TicketPrice cannot be 0");
+        require(_token != address(0), "Token address cannot be 0");
+        require(
+            _treasuryRatio + _affiliateRatio + _winnerRatio == 100,
+            "Ratio must be 100"
+        );
+        require(
+            _treasuryRatio + _affiliateRatio <= 5,
+            "Owner ratio can not exceed 5"
+        );
+
+        token_ = IERC20(_token);
+        sizeOfLottery_ = _sizeOfLottery;
+        ticketPrice_ = _ticketPrice;
+        winnerRatio_ = _winnerRatio;
+        treasuryRatio_ = _treasuryRatio;
+        affiliateRatio_ = _affiliateRatio;
+
+        event ConfigLottery(token_,sizeOfLottery_,ticketPrice_,winnerRatio_,treasuryRatio_,affiliateRatio_ )
     }
 
     /**
@@ -369,7 +373,7 @@ contract Lottery is Ownable, Initializable {
     ) external onlyRandomGenerator {
         require(
             allLotteries_[_lotteryId].lotteryStatus == Status.Closed,
-            "Draw numbers first"
+            "Can not draw when not in closed status"
         );
         require(requestId_ == _requestId, "Invalid request id");
 
@@ -398,7 +402,7 @@ contract Lottery is Ownable, Initializable {
         for (uint256 i = 0; i < _listOfLotterryId.length; i++) {
             require(
                 allLotteries_[_listOfLotterryId[i]].lotteryStatus ==
-                    Status.Closed,
+                    Status.Completed,
                 "Can't claim reward from unfinish round"
             );
 
@@ -411,8 +415,11 @@ contract Lottery is Ownable, Initializable {
                     .affiliateRatio) / 100;
 
             token_ = IERC20(allLotteries_[_listOfLotterryId[i]].tokenAddress);
-            token_.transferFrom(address(this), msg.sender, totalClaimed);
-
+            if(totalClaimed > 0) {
+                token_.transferFrom(address(this), msg.sender, totalClaimed);
+            }
+            
+            // reset ticket count of lottery id index i to 0 
             allAffiliate_[msg.sender][_listOfLotterryId[i]] = 0;
             claimedLotteryIds[i] = _listOfLotterryId[i];
         }
