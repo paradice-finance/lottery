@@ -99,7 +99,14 @@ contract Lottery is Ownable, Initializable {
         uint256 ticketNumber
     );
 
-    event ConfigLottery(address token, uint8 sizeOfLottery, uint256 ticketPrice, uint8 winnerRatio,uint8 treasuryRatio, uint8  affiliateRatio)
+    event ConfigLottery(
+        address token,
+        uint8 sizeOfLottery,
+        uint256 ticketPrice,
+        uint8 winnerRatio,
+        uint8 treasuryRatio,
+        uint8 affiliateRatio
+    );
 
     event LotteryOpen(uint256 lotteryId);
 
@@ -207,6 +214,10 @@ contract Lottery is Ownable, Initializable {
         totalCost = ticketPrice * _numberOfTickets;
     }
 
+    function getCurrentLottery() external view returns (uint256) {
+        return lotteryIdCounter_;
+    }
+
     function getBasicLottoInfo(
         uint256 _lotteryId
     ) external view returns (LottoInfo memory) {
@@ -221,6 +232,12 @@ contract Lottery is Ownable, Initializable {
         uint256 _ticketID
     ) external view returns (address) {
         return allTickets_[_ticketID].owner;
+    }
+
+    function getTicketInfo(
+        uint256 _ticketID
+    ) external view returns (TicketInfo memory) {
+        return allTickets_[_ticketID];
     }
 
     function getUserTickets(
@@ -298,7 +315,14 @@ contract Lottery is Ownable, Initializable {
         treasuryRatio_ = _treasuryRatio;
         affiliateRatio_ = _affiliateRatio;
 
-        event ConfigLottery(token_,sizeOfLottery_,ticketPrice_,winnerRatio_,treasuryRatio_,affiliateRatio_ )
+        emit ConfigLottery(
+            _token,
+            sizeOfLottery_,
+            ticketPrice_,
+            winnerRatio_,
+            treasuryRatio_,
+            affiliateRatio_
+        );
     }
 
     /**
@@ -415,11 +439,11 @@ contract Lottery is Ownable, Initializable {
                     .affiliateRatio) / 100;
 
             token_ = IERC20(allLotteries_[_listOfLotterryId[i]].tokenAddress);
-            if(totalClaimed > 0) {
+            if (totalClaimed > 0) {
                 token_.transferFrom(address(this), msg.sender, totalClaimed);
             }
-            
-            // reset ticket count of lottery id index i to 0 
+
+            // reset ticket count of lottery id index i to 0
             allAffiliate_[msg.sender][_listOfLotterryId[i]] = 0;
             claimedLotteryIds[i] = _listOfLotterryId[i];
         }
