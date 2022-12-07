@@ -12,15 +12,13 @@ async function main() {
     console.log(`Deploy Error: ${error.message}`);
   }
 
-  const [owner] = await ethers.getSigners();
-
   const Lottery = await ethers.getContractFactory('Lottery');
 
-  let lottery = await Lottery.deploy(
-    token.address, // token
-    2, // _sizeOfLotteryNumbers
+  const lottery = await Lottery.deploy(
+    token.address, //_token
+    20, // _sizeOfLotteryNumbers
     1, // _ticketPrice
-    owner.address, // _treasuryAddress
+    process.env.TREASURY_ADDRESS!!, // _treasuryAddress
     4, // _treasuryRatio
     1, // _affiliateRatio
     95 // _winnerRatio

@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "npx hardhat test",
+    "test:lottery": "npx hardhat test ./test/Lottery.test.ts",
     "deploy:test": "npx hardhat run --network goerli deploy-test.ts",
     "format:contracts": "prettier --config prettierrc.json --write ."
   },

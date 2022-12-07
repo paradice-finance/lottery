@@ -1,4 +1,7 @@
-import { expect } from 'chai';
+import * as chai from 'chai';
+import BN from 'bn.js';
+chai.use(require('chai-bn')(BN));
+
 import { ethers } from 'hardhat';
 require('dotenv').config({ path: '.env' });
 
@@ -13,16 +16,17 @@ describe('Lottery', function () {
 
   beforeEach(async () => {
     [owner, A, B, C] = await ethers.getSigners();
-    Token = await ethers.getContractFactory('MockToken');
-    token = await Token.deploy();
+    Token = await ethers.getContractFactory('Mock_erc20');
+    token = await Token.deploy(1000);
     await token.deployed();
 
     // console.log(token.address);
     console.log(token.address);
     Lottery = await ethers.getContractFactory('Lottery');
+
     lottery = await Lottery.deploy(
-      token.address, // token
-      2, // _sizeOfLotteryNumbers
+      token.address, //_token
+      20, // _sizeOfLotteryNumbers
       1, // _ticketPrice
       owner.address, // _treasuryAddress
       4, // _treasuryRatio
@@ -45,20 +49,10 @@ describe('Lottery', function () {
   });
 
   it('Owner have token balance. others is not.', async function () {
-    expect(await token.balanceOf(owner.address)).not.be.equal(0);
+    console.log('balance of owner: ', await token.balanceOf(owner.address));
+    chai.expect(await token.balanceOf(owner.address)).not.be.equal(0);
 
-    expect(await token.balanceOf(A.address)).to.be.equal(0);
-  });
-
-  it('Random contract can get requestId', async function () {
-    console.log(
-      await mockRandomNumberGenerator.connect(owner).requestRandomNumber(1, 4)
-    );
-    expect(
-      await mockRandomNumberGenerator.connect(owner).requestRandomNumber(1, 4)
-    ).not.be.equal(0);
-
-    expect(await token.balanceOf(A.address)).to.be.equal(0);
+    chai.expect(await token.balanceOf(A.address)).to.be.equal(0);
   });
 
   /* Creating a new lottery tests 
