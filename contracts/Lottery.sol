@@ -391,11 +391,11 @@ contract Lottery is Ownable, Initializable {
         ) {
             allLotteries_[lotteryIdCounter_].lotteryStatus = Status.Closed;
             emit LotteryClose(lotteryIdCounter_);
-            drawWinningTicket();
+            requestWinningNumber();
         }
     }
 
-    function numbersDrawn(
+    function fullfilWinningNumber(
         uint256 _lotteryId,
         uint256 _requestId,
         uint256 _randomIndex
@@ -406,11 +406,21 @@ contract Lottery is Ownable, Initializable {
         );
         require(requestId_ == _requestId, "Invalid request id");
 
-        allLotteries_[lotteryIdCounter_].winningTicketId = currentTickets_[
+        allLotteries_[_lotteryId].winningTicketId = currentTickets_[
             _randomIndex
         ];
 
-        allLotteries_[lotteryIdCounter_].lotteryStatus = Status.Completed;
+        allLotteries_[_lotteryId].lotteryStatus = Status.Completed;
+
+        // Send token to treasury address (treasuryEquity = treasury equity + unowned affiliate)
+        uint256 treasuryEquity = ((sizeOfLottery_ *
+            ticketPrice_ *
+            treasuryRatio_) +
+            ((sizeOfLottery_ - sizeOfAffiliate_) *
+                ticketPrice_ *
+                affiliateRatio_)) / 100;
+        sizeOfAffiliate_ = 0;
+        token_.transferFrom(address(this), treasuryAddress_, treasuryEquity);
 
         emit WinningTicket(
             lotteryIdCounter_,
@@ -493,7 +503,7 @@ contract Lottery is Ownable, Initializable {
 
     receive() external payable {}
 
-    function drawWinningTicket() private {
+    function requestWinningNumber() private {
         // Checks lottery numbers have not already been drawn
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Closed,
@@ -506,15 +516,5 @@ contract Lottery is Ownable, Initializable {
         );
 
         emit RequestNumbers(lotteryIdCounter_, requestId_);
-
-        // Send token to treasury address (treasuryEquity = treasury equity + unowned affiliate)
-        uint256 treasuryEquity = ((sizeOfLottery_ *
-            ticketPrice_ *
-            treasuryRatio_) +
-            ((sizeOfLottery_ - sizeOfAffiliate_) *
-                ticketPrice_ *
-                affiliateRatio_)) / 100;
-        sizeOfAffiliate_ = 0;
-        token_.transferFrom(address(this), treasuryAddress_, treasuryEquity);
     }
 }

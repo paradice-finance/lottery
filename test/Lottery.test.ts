@@ -5,7 +5,7 @@ chai.use(require('chai-bn')(BN));
 import { ethers } from 'hardhat';
 require('dotenv').config({ path: '.env' });
 
-describe('Lottery', function () {
+describe('Lottery Contract', function () {
   let owner: any, A: any, B: any, C: any, D: any;
   let Token;
   let token: any;
@@ -20,7 +20,6 @@ describe('Lottery', function () {
     token = await Token.deploy(1000);
     await token.deployed();
 
-    // console.log(token.address);
     console.log(token.address);
     Lottery = await ethers.getContractFactory('Lottery');
 
@@ -43,70 +42,67 @@ describe('Lottery', function () {
       5555,
       lottery.address
     );
-    //   RandomNumberGenerator = await ethers.getContractFactory(
-    //     "RandomNumberGenerator"
-    //   );
   });
 
-  it('Owner have token balance. others is not.', async function () {
-    console.log('balance of owner: ', await token.balanceOf(owner.address));
-    chai.expect(await token.balanceOf(owner.address)).not.be.equal(0);
-
-    chai.expect(await token.balanceOf(A.address)).to.be.equal(0);
+  describe('Mock token contract', function () {
+    it('should get balance properly.', async function () {
+      chai.expect(await token.balanceOf(owner.address)).not.be.equal(0);
+      chai.expect(await token.balanceOf(A.address)).to.be.equal(0);
+    });
   });
 
-  /* Creating a new lottery tests 
-  /  - Should revert when not owner
-  /  - Should revert when invalid current lotto status
-  /  - Should emit event LotteryOpen when success
-  */
+  describe('Creating a new lottery', function () {
+    it('should revert when not owner', async function () {});
+    it('should revert when invalid current lotto status', async function () {});
+    it('should emit event LotteryOpen when success', async function () {});
+  });
 
-  /* Config new lottery 
-  /  - Should revert when not owners
-  /  - Should revert when previous lotteryStatus is not Completed
-  /  - Should revert when invalid _token address
-  /  - Should revert when invalid _sizeOfLottery 
-  /  - Should revert when invalid _ticketPrice
-  /  - Should revert when invalid ratio
-  /  - Should emit event ConfigLottery when success
-  */
+  describe('Config new lottery', function () {
+    it('should revert when not owners', async function () {});
+    it('should revert when previous lotteryStatus is not Completed', async function () {});
+    it('Should revert when invalid _token address', async function () {});
+    it('Should revert when invalid _sizeOfLottery', async function () {});
+    it('Should revert when invalid _ticketPrice', async function () {});
+    it('Should revert when invalid ratio', async function () {});
+    it('Should emit event ConfigLottery when success', async function () {});
+  });
 
-  /* Buy tickets 
-  /  - Should revert when call by invalid address
-  /  - Should revert when current lotteryStatus is not Open
-  /  - Should revert when buying ticket quantity > available tickets 
-  /  - Should revert when invalid _chosenNumbersForEachTicket
-  /  - Should revert when buyer don't have enough token for transfer
-  /  - Should emit event NewBatchMint and Affiliate when success
-  /  - Should emit event LotteryClose when fully sell tickets
-  */
+  describe('Buy tickets', function () {
+    it('Should revert when call by invalid address', async function () {});
+    it('Should revert when current lotteryStatus is not Open', async function () {});
+    it('Should revert when buying ticket quantity > available tickets ', async function () {});
+    it('Should revert when invalid _chosenNumbersForEachTicket', async function () {});
+    it("Should revert when buyer don't have enough token for transfer", async function () {});
+    it('Should emit event NewBatchMint and Affiliate when success', async function () {});
+    it('Should emit event LotteryClose when fully sell tickets', async function () {});
+  });
 
-  /* Drawing winning ticket
-  /  - Should revert when current lotteryStatus is not Closed
-  /  - Should transfer to treasury address equal to pool - aff - winner
-  /  - Should emit event RequestNumbers when success
-  */
+  describe('Request winning number', function () {
+    it('Should revert when current lotteryStatus is not Closed', async function () {});
+    it('Should transfer to treasury address equal to pool - aff - winner', async function () {});
+    it('Should emit event RequestNumbers when success', async function () {});
+  });
 
-  /* Numbers draw 
-  /  - Should revert when current lotteryStatus is not Closed
-  /  - Should revert when invalid _requestId
-  /  - Should update lottery status to "Completed" when success
-  /  - Should emit event WinningTicket when success
-  */
+  describe('Fullfil winning number', function () {
+    it('Should revert when current lotteryStatus is not Closed', async function () {});
+    it('Should revert when invalid _requestId', async function () {});
+    it('Should update lottery status to "Completed" when success', async function () {});
+    it('Should emit event WinningTicket when success', async function () {});
+  });
 
-  /* ClaimWinReward tests
-  / .- Should revert when send invalid lotteryId
-  /  - Should revert when send invalid ticketId
-  /  - Should revert when lotto status is not "completed".
-  /  - Should revert when sender is not ticket owner.
-  /  - Should revert when winner claim twice.
-  /  - Should revert when can't transfer token to winner.
-  /  - Should emit event ClaimWinReward when success.
-  */
+  describe('Claim win reward', function () {
+    it('Should revert when send invalid lotteryId', async function () {});
+    it('Should revert when send invalid ticketId', async function () {});
+    it('Should revert when lotto status is not "completed"', async function () {});
+    it('Should revert when sender is not ticket owner', async function () {});
+    it('Should revert when winner claim twice', async function () {});
+    it("Should revert when can't transfer token to winner", async function () {});
+    it('Should emit event ClaimWinReward when success', async function () {});
+  });
 
-  /* Claim Affiliate
-  /  - Should revert when lotteryStatus is not Completed
-  /  - should not transfer when total claim is zero
-  /  - Should emit event ClaimedAffiliate when success
-  */
+  describe('Claim affiliate', function () {
+    it('should revert when lotteryStatus is not Completed', async function () {});
+    it('should not transfer when total claim is zero', async function () {});
+    it('Should emit event ClaimedAffiliate when success', async function () {});
+  });
 });
