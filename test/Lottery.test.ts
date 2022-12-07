@@ -92,6 +92,14 @@ describe("Lottery", function () {
   /  - Should emit event WinningTicket when success
   */
 
+  /* ClaimWinReward tests
+  /  - Should revert when sending wrong argument.
+  /  - Should revert when lotto status is not "completed".
+  /  - Should revert when sender is not ticket owner.
+  /  - Should revert when winner claim twice.
+  /  - Should emit when transfer token to winner.
+  */
+
   /* Claim Affiliate
   /  - Should revert when lotteryStatus is not Completed
   /  - should not transfer when total claim is zero
