@@ -31,8 +31,8 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     mapping(uint256 => uint256) public round_result;
     uint256 internal round_size;
 
-    event TicketRolled(uint256 indexed requestId);
-    event TicketResulted(uint256 indexed requestId, uint256 indexed result);
+    event requestRandomNumber(uint256 lotteryId,uint256 requestId)
+    event fulfillRandomWords(uint256 indexed requestId, uint256 indexed result);
 
     uint256 internal fee;
     address internal requester;
@@ -73,6 +73,8 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
         currentLotteryId = lotteryId_;
         round_result[requestId] = ROLL_IN_PROGRESS;
         round_size = _round_size;
+
+        emit requestRandomNumber(lotteryId_, requestId);
     }
 
     function fulfillRandomWords(
@@ -87,7 +89,7 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
             randomValue
         );
 
-        emit TicketResulted(requestId, randomValue);
+        emit fulfillRandomWords(requestId, randomValue);
     }
 
     function getRandomResult(uint256 requestId) public view returns (uint256) {
