@@ -7,7 +7,7 @@ require('dotenv').config({ path: '.env' });
 const { lotto } = require('./settings.ts');
 
 describe('Lottery Contract', function () {
-  let owner: any, buyer: any, B: any, C: any, D: any;
+  let owner: any, buyer: any, buyerWithAllowance: any, C: any, D: any;
   let Token;
   let token: any;
   let Lottery;
@@ -15,12 +15,15 @@ describe('Lottery Contract', function () {
   let MockRandomNumberGenerator;
   let mockRandomNumberGenerator: any;
   let nullAddress = '0x0000000000000000000000000000000000000000';
+  let allowance = 10000000000000000000000n;
 
   beforeEach(async () => {
-    [owner, buyer, B, C] = await ethers.getSigners();
+    [owner, buyer, buyerWithAllowance, C] = await ethers.getSigners();
 
     Token = await ethers.getContractFactory('Mock_erc20');
-    token = await (await Token.deploy(1000)).deployed();
+    token = await (await Token.deploy(100000)).deployed();
+    console.log(await token.balanceOf(owner.address));
+    await token.connect(owner).transfer(buyerWithAllowance.address, allowance);
 
     Lottery = await ethers.getContractFactory('Lottery');
     lottery = await Lottery.deploy(
@@ -34,6 +37,8 @@ describe('Lottery Contract', function () {
     );
     await lottery.deployed();
 
+    await token.connect(buyerWithAllowance).approve(lottery.address, allowance);
+
     MockRandomNumberGenerator = await ethers.getContractFactory(
       'MockRandomNumberGenerator'
     );
@@ -41,6 +46,9 @@ describe('Lottery Contract', function () {
       5555,
       lottery.address
     );
+    await mockRandomNumberGenerator.deployed();
+
+    await lottery.initialize(mockRandomNumberGenerator.address);
   });
 
   describe('Mock token contract', function () {
@@ -218,18 +226,39 @@ describe('Lottery Contract', function () {
         .expect(
           lottery
             .connect(buyer)
-            .batchBuyLottoTicket(
-              10,
-              [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
-              nullAddress,
-              false
-            )
+            .batchBuyLottoTicket(3, [1, 2], nullAddress, false)
         )
         .to.be.revertedWith(lotto.errors.invalid_buy_chosen_number);
     });
-    // it("should revert when buyer don't have enough token for transfer", async function () {});
-    // it('should emit event NewBatchMint and Affiliate when success', async function () {});
-    // it('should emit event LotteryClose when fully sell tickets', async function () {});
+    it("should revert when buyer don't have enough token for transfer", async function () {
+      await lottery.connect(owner).createNewLotto();
+      await chai
+        .expect(
+          lottery.connect(buyer).batchBuyLottoTicket(1, [1], nullAddress, false)
+        )
+        .to.be.revertedWith(lotto.errors.invalid_buy_approve);
+    });
+    it('should emit event NewBatchMint and Affiliate when success', async function () {
+      await lottery.connect(owner).createNewLotto();
+      await chai
+        .expect(
+          lottery
+            .connect(buyerWithAllowance)
+            .batchBuyLottoTicket(1, [1], nullAddress, false)
+        )
+        .to.emit(lottery, lotto.event.batchBuy)
+        .to.emit(lottery, lotto.event.affiliate);
+    });
+    it('should emit event LotteryClose when fully sell tickets', async function () {
+      await lottery.connect(owner).createNewLotto();
+      await chai
+        .expect(
+          lottery
+            .connect(buyerWithAllowance)
+            .batchBuyLottoTicket(5, [1, 2, 3, 4, 5], nullAddress, false)
+        )
+        .to.emit(lottery, lotto.event.close);
+    });
   });
 
   // describe('Request winning number', function () {

@@ -3,7 +3,7 @@ const { BigNumber } = require('@ethersproject/bignumber');
 
 const lotto = {
   setup: {
-    sizeOfLotteryNumbers: 20,
+    sizeOfLotteryNumbers: 5,
     ticketPrice: 1,
     treasuryRatio: 4,
     affiliateRatio: 1,
@@ -17,6 +17,9 @@ const lotto = {
   event: {
     new: 'LotteryOpen',
     config: 'ConfigLottery',
+    batchBuy: 'NewBatchBuy',
+    affiliate: 'Affiliate',
+    close: 'LotteryClose',
   },
   errors: {
     invalid_admin: 'Ownable: caller is not the owner',
@@ -28,6 +31,7 @@ const lotto = {
     invalid_buy_to_large: 'Batch buy too large',
     invalid_buy_chosen_number:
       'The quantity of the _chosenNumbersForEachTicket is not equal with _ticketQty',
+    invalid_buy_approve: 'ERC20: insufficient allowance',
     create_new_lottery_when_previous_lottery_not_finished:
       'Cannot be created if the current lotto are not finished.',
     config_new_lottery_when_previous_lottery_not_finished:

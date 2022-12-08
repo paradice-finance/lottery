@@ -84,7 +84,7 @@ contract Lottery is Ownable, Initializable {
     // EVENTS
     //-------------------------------------------------------------------------
 
-    event NewBatchMint(
+    event NewBatchBuy(
         address indexed minter,
         uint256 lotteryId,
         uint256[] ticketIDs,
@@ -256,7 +256,7 @@ contract Lottery is Ownable, Initializable {
         return sizeOfLottery_ - currentTickets_.length;
     }
 
-    function createNewLotto() external onlyOwner returns (uint256 lotteryId) {
+    function createNewLotto() external onlyOwner returns (uint256) {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed,
             "Cannot be created if the current lotto are not finished."
@@ -287,6 +287,7 @@ contract Lottery is Ownable, Initializable {
         allLotteries_[lotteryIdCounter_] = newLottery;
         // Emitting important information around new lottery.
         emit LotteryOpen(lotteryIdCounter_);
+        return lotteryIdCounter_;
     }
 
     function configNewLotto(
@@ -384,8 +385,8 @@ contract Lottery is Ownable, Initializable {
             }
         }
 
-        // Emitting batch mint ticket with all information
-        emit NewBatchMint(msg.sender, lotteryIdCounter_, ticketIds, msg.value);
+        // Emitting batch buy ticket with all information
+        emit NewBatchBuy(msg.sender, lotteryIdCounter_, ticketIds, msg.value);
         emit Affiliate(
             _affiliateAddress,
             lotteryIdCounter_,
