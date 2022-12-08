@@ -22,7 +22,6 @@ describe('Lottery Contract', function () {
 
     Token = await ethers.getContractFactory('Mock_erc20');
     token = await (await Token.deploy(100000)).deployed();
-    console.log(await token.balanceOf(owner.address));
     await token.connect(owner).transfer(buyerWithAllowance.address, allowance);
 
     Lottery = await ethers.getContractFactory('Lottery');
@@ -211,12 +210,7 @@ describe('Lottery Contract', function () {
         .expect(
           lottery
             .connect(buyer)
-            .batchBuyLottoTicket(
-              21,
-              [1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1],
-              nullAddress,
-              false
-            )
+            .batchBuyLottoTicket(6, [1, 2, 3, 4, 5, 6], nullAddress, false)
         )
         .to.be.revertedWith(lotto.errors.invalid_buy_to_large);
     });
