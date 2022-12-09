@@ -231,7 +231,12 @@ describe('Lottery Contract', function () {
         .expect(
           lottery
             .connect(buyer)
-            .batchBuyLottoTicket(6, [1, 2, 3, 4, 5, 6], nullAddress, false)
+            .batchBuyLottoTicket(
+              lotto.setup.sizeOfLotteryNumbers + 1,
+              lotto.setup.chosenNumbersForEachTicket,
+              nullAddress,
+              false
+            )
         )
         .to.be.revertedWith(lotto.errors.invalid_buy_to_large);
     });
@@ -270,21 +275,39 @@ describe('Lottery Contract', function () {
         .expect(
           lottery
             .connect(buyerWithAllowance)
-            .batchBuyLottoTicket(5, [1, 2, 3, 4, 5], nullAddress, false)
+            .batchBuyLottoTicket(
+              lotto.setup.sizeOfLotteryNumbers,
+              lotto.setup.chosenNumbersForEachTicket,
+              nullAddress,
+              false
+            )
         )
         .to.emit(lottery, lotto.event.close);
     });
   });
 
-  // describe('Request winning number', function () {
-  //   it('should revert when current lotteryStatus is not Closed', async function () {});
-  //   it('should transfer to treasury address equal to pool - aff - winner', async function () {});
-  //   it('should emit event RequestNumbers when success', async function () {});
-  // });
+  describe('Request winning number', function () {
+    it('should emit event RequestNumbers when success', async function () {
+      await lottery.connect(owner).createNewLotto();
+      await chai
+        .expect(
+          lottery
+            .connect(buyerWithAllowance)
+            .batchBuyLottoTicket(
+              lotto.setup.sizeOfLotteryNumbers,
+              lotto.setup.chosenNumbersForEachTicket,
+              nullAddress,
+              false
+            )
+        )
+        .to.emit(lottery, lotto.event.winningNumber);
+    });
+  });
 
   // describe('Fullfil winning number', function () {
   //   it('should revert when current lotteryStatus is not Closed', async function () {});
   //   it('should revert when invalid _requestId', async function () {});
+  //   it('should transfer to treasury address equal to pool - aff - winner', async function () {});
   //   it('should update lottery status to "Completed" when success', async function () {});
   //   it('should emit event WinningTicket when success', async function () {});
   // });
