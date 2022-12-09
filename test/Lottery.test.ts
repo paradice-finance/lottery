@@ -283,13 +283,18 @@ describe('Lottery Contract', function () {
     });
   });
 
-  // describe('Fullfil winning number', function () {
-  //   it('should revert when current lotteryStatus is not Closed', async function () {});
-  //   it('should revert when invalid _requestId', async function () {});
-  //   it('should transfer to treasury address equal to pool - aff - winner', async function () {});
-  //   it('should update lottery status to "Completed" when success', async function () {});
-  //   it('should emit event WinningTicket when success', async function () {});
-  // });
+  describe('Fullfil winning number', function () {
+    it('should revert when caller is not RandomNumberGenerator', async function () {
+      await chai
+        .expect(lottery.connect(owner).fullfilWinningNumber(1, 1, 1))
+        .to.be.revertedWith(lotto.errors.invalid_random_generator);
+    });
+    it('should revert when current lotteryStatus is not Closed', async function () {});
+    // it('should revert when invalid _requestId', async function () {});
+    // it('should transfer to treasury address equal to pool - aff - winner', async function () {});
+    // it('should update lottery status to "Completed" when success', async function () {});
+    // it('should emit event WinningTicket when success', async function () {});
+  });
 
   // describe('Claim win reward', function () {
   //   it('should revert when send invalid lotteryId', async function () {});

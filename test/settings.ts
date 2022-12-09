@@ -34,6 +34,7 @@ const lotto = {
     invalid_buy_chosen_number:
       'The quantity of the _chosenNumbersForEachTicket is not equal with _ticketQty',
     invalid_buy_approve: 'ERC20: insufficient allowance',
+    invalid_random_generator: 'Only random generator',
     create_new_lottery_when_previous_lottery_not_finished:
       'Cannot be created if the current lotto are not finished.',
     config_new_lottery_when_previous_lottery_not_finished:
