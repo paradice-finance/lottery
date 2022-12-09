@@ -7,19 +7,21 @@ const lotto = {
     ticketPrice: 1,
     treasuryRatio: 4,
     affiliateRatio: 1,
-    winnerRatio: 95
+    winnerRatio: 95,
+    chosenNumbersForEachTicket: [1, 2, 3, 4, 5],
   },
   chainLink: {
     keyHash:
       '0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4',
-    fee: ethers.utils.parseUnits('1', 19)
+    fee: ethers.utils.parseUnits('1', 19),
   },
   event: {
     new: 'LotteryOpen',
     config: 'ConfigLottery',
     batchBuy: 'NewBatchBuy',
     affiliate: 'Affiliate',
-    close: 'LotteryClose'
+    close: 'LotteryClose',
+    winningNumber: 'RequestWinningNumbers',
   },
   errors: {
     invalid_admin: 'Ownable: caller is not the owner',
@@ -35,11 +37,11 @@ const lotto = {
     create_new_lottery_when_previous_lottery_not_finished:
       'Cannot be created if the current lotto are not finished.',
     config_new_lottery_when_previous_lottery_not_finished:
-      'Cannot be config if the current lotto are not finished.'
-  }
+      'Cannot be config if the current lotto are not finished.',
+  },
 };
 
 module.exports = {
   lotto,
-  BigNumber
+  BigNumber,
 };
