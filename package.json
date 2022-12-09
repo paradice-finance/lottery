@@ -7,6 +7,7 @@
     "compile": "npx hardhat compile",
     "test": "npx hardhat test",
     "test:lottery": "npx hardhat test ./test/Lottery.test.ts",
+    "test:random": "npx hardhat test ./test/Random.test.ts",
     "deploy:test": "npx hardhat run --network goerli deploy-test.ts",
     "format:contracts": "prettier --config prettierrc.json --write ."
   },
