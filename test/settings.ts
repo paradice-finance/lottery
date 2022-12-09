@@ -8,6 +8,7 @@ const lotto = {
     treasuryRatio: 4,
     affiliateRatio: 1,
     winnerRatio: 95,
+    chosenNumbersForEachTicket: [1, 2, 3, 4, 5],
   },
   chainLink: {
     keyHash:
@@ -20,6 +21,7 @@ const lotto = {
     batchBuy: 'NewBatchBuy',
     affiliate: 'Affiliate',
     close: 'LotteryClose',
+    winningNumber: 'RequestWinningNumbers',
   },
   errors: {
     invalid_admin: 'Ownable: caller is not the owner',

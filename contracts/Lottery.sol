@@ -91,7 +91,7 @@ contract Lottery is Ownable, Initializable {
         uint256 totalCost
     );
 
-    event RequestNumbers(uint256 lotteryId, uint256 requestId);
+    event RequestWinningNumbers(uint256 lotteryId, uint256 requestId);
 
     event WinningTicket(
         uint256 lotteryId,
@@ -513,17 +513,12 @@ contract Lottery is Ownable, Initializable {
     receive() external payable {}
 
     function requestWinningNumber() private {
-        // Checks lottery numbers have not already been drawn
-        require(
-            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Closed,
-            "Lottery status must be closed for drawing winner"
-        );
         // Requests a request number from the generator
         requestId_ = randomGenerator_.requestRandomNumber(
             lotteryIdCounter_,
             sizeOfLottery_
         );
 
-        emit RequestNumbers(lotteryIdCounter_, requestId_);
+        emit RequestWinningNumbers(lotteryIdCounter_, requestId_);
     }
 }
