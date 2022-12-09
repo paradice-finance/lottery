@@ -2,41 +2,49 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 require("dotenv").config({ path: ".env" });
 
-describe("Lottery", function () {
-  let owner: any, A: any, B: any, C: any, D: any;
-
+describe("RandomGenerator", function () {
+  let owner: any, A: any, B: any, C: any, treasury: any;
+  let Token;
+  let token;
   let Lottery;
   let lottery;
+  let MockVRF;
+  let mockVRF;
   let RandomNumberGenerator;
+  let randomNumberGenerator;
+  let round_size;
+  let ticket_price;
 
-  // beforeEach(async () => {
-  //   [owner, A, B, C] = await ethers.getSigners();
-  //   Lottery = await ethers.getContractFactory("Lottery");
-  //   lottery = await Lottery.deploy(
-  //     "0x6A832387425887A12239bF361D56C33D535F746f",
-  //     2,
-  //     1
-  //   );
+  beforeEach(async () => {
+    [owner, A, B, C, treasury] = await ethers.getSigners();
 
-  //   RandomNumberGenerator = await ethers.getContractFactory(
-  //     "RandomNumberGenerator"
-  //   );
-  // });
+    Token = await ethers.getContractFactory("Mock_erc20");
+    token = await Token.deploy(1000);
+    Lottery = await ethers.getContractFactory("Lottery");
+    lottery = await Lottery.deploy(
+      token.address,
+      round_size,
+      ticket_price,
+      treasury,
+      4,
+      1,
+      95
+    );
 
-  it("Random", async function () {
-    expect(2).to.be.equal(2);
+    // MockVRF = await ethers.getContractFactory("Mock_VRFCoordinator");
+    // mockVRF = await MockVRF.deploy();
   });
 
-  /* RequestRandomNumber tests 
-  /  - Should revert when send invalid lotteryId.
-  /  - Should revert when send invalid roundSize input.
-  /  - Should revert when not called by Lottery address.
-  /  - Should emit event requestRandomNumber when success. 
-  */
+  describe("RequestRandomNumber", function () {
+    it("Should revert when send invalid lotteryId.", async function () {});
+    it("Should revert when send invalid roundSize input.", async function () {});
+    it("Should revert when not called by Lottery address.", async function () {});
+    it("Should emit event requestRandomNumber when success.", async function () {});
+  });
 
-  /* FulfillRandomWords tests 
-  /  - Should revert when not called by LINK SmartContract.
-  /  - Should revert when random value greater than or equal round size.
-  / . - Should emit event fulfillRandomWords when success.
-  */
+  describe("FulfillRandomWords", function () {
+    it("Should revert when not called by LINK SmartContract.", async function () {});
+    it("Should revert when random value greater than or equal round size.", async function () {});
+    it("Should emit event fulfillRandomWords when success.", async function () {});
+  });
 });
