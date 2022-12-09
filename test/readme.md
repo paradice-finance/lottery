@@ -1,7 +1,5 @@
 # Test case convention
 
-- ref: https://medium.com/@stefanovskyi/unit-test-naming-conventions-dd9208eadbea
-
 #### Test name should express a specific requirement
 
 #### Test name could include the expected input or state and the expected result for that input or state
@@ -13,4 +11,7 @@
 ### Example
 
 - Should_ExpectedBehavior_When_StateUnderTest
+
   - example: Should_ThrowException_When_AgeLessThan18
+
+- ref: https://medium.com/@stefanovskyi/unit-test-naming-conventions-dd9208eadbea

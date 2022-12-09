@@ -84,7 +84,7 @@ contract Lottery is Ownable, Initializable {
     // EVENTS
     //-------------------------------------------------------------------------
 
-    event NewBatchMint(
+    event NewBatchBuy(
         address indexed minter,
         uint256 lotteryId,
         uint256[] ticketIDs,
@@ -173,7 +173,7 @@ contract Lottery is Ownable, Initializable {
         sizeOfLottery_ = _sizeOfLotteryNumbers;
         ticketPrice_ = _ticketPrice * 10 ** 18;
         ticketIdCounter_ = 1;
-        lotteryIdCounter_ = 1;
+        lotteryIdCounter_ = 0;
 
         winnerRatio_ = _winnerRatio;
         treasuryRatio_ = _treasuryRatio;
@@ -188,7 +188,7 @@ contract Lottery is Ownable, Initializable {
         // init first lotto
         LottoInfo memory newLottery = LottoInfo(
             lotteryIdCounter_,
-            Status.Open,
+            Status.Completed,
             address(token_),
             sizeOfLottery_,
             ticketPrice_,
@@ -256,7 +256,7 @@ contract Lottery is Ownable, Initializable {
         return sizeOfLottery_ - currentTickets_.length;
     }
 
-    function createNewLotto() external onlyOwner returns (uint256 lotteryId) {
+    function createNewLotto() external onlyOwner returns (uint256) {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed,
             "Cannot be created if the current lotto are not finished."
@@ -284,9 +284,10 @@ contract Lottery is Ownable, Initializable {
             prizeDistribution
         );
 
-        allLotteries_[lotteryId] = newLottery;
+        allLotteries_[lotteryIdCounter_] = newLottery;
         // Emitting important information around new lottery.
-        emit LotteryOpen(lotteryId);
+        emit LotteryOpen(lotteryIdCounter_);
+        return lotteryIdCounter_;
     }
 
     function configNewLotto(
@@ -298,11 +299,12 @@ contract Lottery is Ownable, Initializable {
         uint8 _affiliateRatio
     ) external onlyOwner {
         require(
-            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed
+            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed,
+            "Cannot be config if the current lotto are not finished."
         );
 
         require(_sizeOfLottery != 0, "Lottery size cannot be 0");
-        require(_ticketPrice != 0, "TicketPrice cannot be 0");
+        require(_ticketPrice != 0, "Ticket price cannot be 0");
         require(_token != address(0), "Token address cannot be 0");
         require(
             _treasuryRatio + _affiliateRatio + _winnerRatio == 100,
@@ -333,21 +335,28 @@ contract Lottery is Ownable, Initializable {
     /**
      * @param  _ticketQty: The quantity of the ticket
      * @param  _chosenNumbersForEachTicket: Number of each ticket
+     * @param  _affiliateAddress: will be use when _isAffiliate == true
+     * @param  _isAffiliate: ticket buy with aff or not
      */
     function batchBuyLottoTicket(
         uint8 _ticketQty,
         uint16[] calldata _chosenNumbersForEachTicket,
-        address payable _affiliateAddress
+        address payable _affiliateAddress,
+        bool _isAffiliate
     ) external payable notContract {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Open,
-            "Lottery not in state for mint"
+            "Lottery status incorrect for buy"
         );
         require(
             _ticketQty <=
                 (allLotteries_[lotteryIdCounter_].sizeOfLottery -
                     currentTickets_.length),
-            "Batch mint too large"
+            "Batch buy too large"
+        );
+        require(
+            _chosenNumbersForEachTicket.length == _ticketQty,
+            "The quantity of the _chosenNumbersForEachTicket is not equal with _ticketQty"
         );
 
         uint256 totalCost = ticketPrice_ * _ticketQty;
@@ -369,15 +378,15 @@ contract Lottery is Ownable, Initializable {
             // Incrementing the tokenId counter
             ticketIdCounter_ += 1;
             // set affiliate address
-            if (_affiliateAddress != address(0)) {
+            if (_isAffiliate) {
                 allAffiliate_[_affiliateAddress][lotteryIdCounter_] += 1;
                 // add affiliate size
                 sizeOfAffiliate_ += 1;
             }
         }
 
-        // Emitting batch mint ticket with all information
-        emit NewBatchMint(msg.sender, lotteryIdCounter_, ticketIds, msg.value);
+        // Emitting batch buy ticket with all information
+        emit NewBatchBuy(msg.sender, lotteryIdCounter_, ticketIds, msg.value);
         emit Affiliate(
             _affiliateAddress,
             lotteryIdCounter_,
