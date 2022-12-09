@@ -15,7 +15,11 @@ dotenv.config({ path: __dirname + "/.env" });
 
 const { GOERLI_API_KEY, GOERLI_DEPLOYER_PRIVATE_KEY } = process.env;
 const config = {
-  warnings: "off",
+  warnings: {
+    "contracts/Mock_VRFCoordinator": {
+      default: "off",
+    },
+  },
   defaultNetwork: "hardhat",
   solidity: {
     version: "0.8.17",
