@@ -79,6 +79,8 @@ contract Lottery is Ownable, Initializable {
     mapping(address => mapping(uint256 => uint256[])) internal userTickets_;
     // Affiliate address => Lottery ID => Ticket Count
     mapping(address => mapping(uint256 => uint256)) internal allAffiliate_;
+    // Lottery ID's to treasury amount
+    mapping(uint256 => uint256) internal allTreasuryAmount_;
 
     //-------------------------------------------------------------------------
     // EVENTS
@@ -91,7 +93,7 @@ contract Lottery is Ownable, Initializable {
         uint256 totalCost
     );
 
-    event RequestNumbers(uint256 lotteryId, uint256 requestId);
+    event RequestWinningNumbers(uint256 lotteryId, uint256 requestId);
 
     event WinningTicket(
         uint256 lotteryId,
@@ -123,7 +125,10 @@ contract Lottery is Ownable, Initializable {
         uint256 ticketId,
         uint256 lotteryId
     );
+
     event ClaimedAffiliate(address affiliateAddress, uint256[] lotteryIds);
+
+    event ClaimTreasuryAmount(address affiliateAddress, uint256[] lotteryIds);
 
     //-------------------------------------------------------------------------
     // MODIFIERS
@@ -429,10 +434,10 @@ contract Lottery is Ownable, Initializable {
                 ticketPrice_ *
                 affiliateRatio_)) / 100;
         sizeOfAffiliate_ = 0;
-        token_.transferFrom(address(this), treasuryAddress_, treasuryEquity);
+        allTreasuryAmount_[_lotteryId] = treasuryEquity;
 
         emit WinningTicket(
-            lotteryIdCounter_,
+            _lotteryId,
             currentTickets_[_randomIndex],
             allTickets_[currentTickets_[_randomIndex]].number
         );
@@ -498,32 +503,62 @@ contract Lottery is Ownable, Initializable {
                     .prizeDistribution
                     .affiliateRatio) / 100;
 
-            token_ = IERC20(allLotteries_[_listOfLotterryId[i]].tokenAddress);
             if (totalClaimed > 0) {
+                token_ = IERC20(
+                    allLotteries_[_listOfLotterryId[i]].tokenAddress
+                );
                 token_.transferFrom(address(this), msg.sender, totalClaimed);
+                // reset ticket count of lottery id index i to 0
+                allAffiliate_[msg.sender][_listOfLotterryId[i]] = 0;
+                claimedLotteryIds[i] = _listOfLotterryId[i];
             }
-
-            // reset ticket count of lottery id index i to 0
-            allAffiliate_[msg.sender][_listOfLotterryId[i]] = 0;
-            claimedLotteryIds[i] = _listOfLotterryId[i];
         }
         emit ClaimedAffiliate(msg.sender, claimedLotteryIds);
+    }
+
+    /**
+     * @param  _listOfLotterryId: all LotteryId that want to claim treasury amount
+     */
+    function claimTreasuryAmount(
+        uint256[] calldata _listOfLotterryId
+    ) external payable onlyOwner {
+        uint256[] memory claimedLotteryIds = new uint256[](
+            _listOfLotterryId.length
+        );
+        for (uint256 i = 0; i < _listOfLotterryId.length; i++) {
+            require(
+                allLotteries_[_listOfLotterryId[i]].lotteryStatus ==
+                    Status.Completed,
+                "Can't claim treasury from unfinish round"
+            );
+
+            if (allTreasuryAmount_[_listOfLotterryId[i]] > 0) {
+                token_ = IERC20(
+                    allLotteries_[_listOfLotterryId[i]].tokenAddress
+                );
+                uint256 treasuryAmount = allTreasuryAmount_[
+                    _listOfLotterryId[i]
+                ];
+                token_.transferFrom(address(this), msg.sender, treasuryAmount);
+                // reset treasuryAmount of  lottery id index i to 0
+                allTreasuryAmount_[_listOfLotterryId[i]] = 0;
+                // reset ticket count of lottery id index i to 0
+                allAffiliate_[msg.sender][_listOfLotterryId[i]] = 0;
+                claimedLotteryIds[i] = _listOfLotterryId[i];
+            }
+        }
+        emit ClaimTreasuryAmount(msg.sender, claimedLotteryIds);
     }
 
     receive() external payable {}
 
     function requestWinningNumber() private {
-        // Checks lottery numbers have not already been drawn
-        require(
-            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Closed,
-            "Lottery status must be closed for drawing winner"
-        );
         // Requests a request number from the generator
         requestId_ = randomGenerator_.requestRandomNumber(
             lotteryIdCounter_,
             sizeOfLottery_
         );
 
-        emit RequestNumbers(lotteryIdCounter_, requestId_);
+        emit RequestWinningNumbers(lotteryIdCounter_, requestId_);
     }
 }
