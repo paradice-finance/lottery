@@ -1,6 +1,7 @@
 import { ethers } from 'hardhat';
 import * as chai from 'chai';
 import BN from 'bn.js';
+import { BigNumber } from 'ethers';
 chai.use(require('chai-bn')(BN));
 
 require('dotenv').config({ path: '.env' });
@@ -13,12 +14,12 @@ describe('RandomGenerator', function () {
   let Token;
   let token: any;
   let Lottery;
-  let lottery;
+  let lottery: any;
   let MockVRF;
   let mockVRF;
   let RandomNumberGenerator;
-  let randomNumberGenerator;
-  let round_size;
+  let randomNumberGenerator: any;
+  let round_size: number;
   let ticket_price;
 
   beforeEach(async () => {
@@ -81,35 +82,35 @@ describe('RandomGenerator', function () {
 
     await lottery.initialize(randomNumberGenerator.address);
 
-    await lottery.connect(owner).createNewLotto();
+    // await lottery.connect(owner).createNewLotto();
 
-    let buy = await lottery
-      .connect(buyerWithAllowance)
-      .batchBuyLottoTicket(5, [1, 2, 3, 4, 5], nullAddress, false);
-    let result: any = await buy.wait();
+    // let buy = await lottery
+    //   .connect(buyerWithAllowance)
+    //   .batchBuyLottoTicket(5, [1, 2, 3, 4, 5], nullAddress, false);
+    // let result: any = await buy.wait();
 
-    let reqId = result.events
-      .filter((x: any) => x.event == 'RequestNumbers')[0]
-      .args[1].toNumber();
+    // let reqId = result.events
+    //   .filter((x: any) => x.event == "RequestNumbers")[0]
+    //   .args[1].toNumber();
 
-    console.log(
-      'requestId : ',
-      result.events
-        .filter((x: any) => x.event == 'RequestNumbers')[0]
-        .args[1].toNumber()
-    );
+    // console.log(
+    //   "requestId : ",
+    //   result.events
+    //     .filter((x: any) => x.event == "RequestNumbers")[0]
+    //     .args[1].toNumber()
+    // );
 
-    //fulfill
-    let final = await mockVRF
-      .connect(owner)
-      .fulfillRandomWords(reqId, randomNumberGenerator.address);
-    let final2 = await final.wait();
-    // console.log(final2.events);
+    // //fulfill
+    // let final = await mockVRF
+    //   .connect(owner)
+    //   .fulfillRandomWords(reqId, randomNumberGenerator.address);
+    // let final2 = await final.wait();
+    // // console.log(final2.events);
 
-    console.log(
-      'random result',
-      (await randomNumberGenerator.getRandomResult(reqId)).toNumber()
-    );
+    // console.log(
+    //   "random result",
+    //   (await randomNumberGenerator.getRandomResult(reqId)).toNumber()
+    // );
 
     // console.log(res3.events);
     // MockVRF = await ethers.getContractFactory("Mock_VRFCoordinator");
@@ -117,20 +118,26 @@ describe('RandomGenerator', function () {
   });
 
   describe('RequestRandomNumber', function () {
-    it('Should revert when send invalid lotteryId.', async function () {
-      // await lottery.connect(owner).createNewLotto();
-      // await chai
-      //   .expect(
-      //     lottery
-      //       .connect(buyerWithAllowance)
-      //       .batchBuyLottoTicket(5, [1, 2, 3, 4, 5], nullAddress, false)
-      //   )
-      //   .to.emit(lottery, lotto.event.batchBuy)
-      //   .to.emit(lottery, lotto.event.affiliate);
+    it('Should revert when send invalid lotteryId.', async function () {});
+    it('Should revert when send invalid roundSize input.', async function () {});
+    it('Should revert when not called by Lottery address.', async function () {
+      // await chai.expect(reqId).to.equal(1);
     });
-    // it("Should revert when send invalid roundSize input.", async function () {});
-    // it("Should revert when not called by Lottery address.", async function () {});
-    // it("Should emit event requestRandomNumber when success.", async function () {});
+
+    it('Should emit event requestRandomNumber when success.', async function () {
+      await lottery.connect(owner).createNewLotto();
+
+      let buy = await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyLottoTicket(5, [1, 2, 3, 4, 5], nullAddress, false);
+      let result: any = await buy.wait();
+
+      let reqId: any = result.events.filter(
+        (x: any) => x.event == 'RequestWinningNumbers'
+      )[0].args[1];
+
+      console.log('test', reqId);
+    });
   });
 
   // describe("FulfillRandomWords", function () {

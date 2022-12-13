@@ -12,8 +12,10 @@ describe('Lottery Contract', function () {
   let token: any;
   let Lottery;
   let lottery: any;
-  let MockRandomNumberGenerator;
-  let mockRandomNumberGenerator: any;
+  let RandomNumberGenerator;
+  let randomNumberGenerator: any;
+  let MockVRF: any;
+  let mockVRF: any;
   let nullAddress = '0x0000000000000000000000000000000000000000';
   let allowance = 10000000000000000000000n;
 
@@ -38,16 +40,34 @@ describe('Lottery Contract', function () {
 
     await token.connect(buyerWithAllowance).approve(lottery.address, allowance);
 
-    MockRandomNumberGenerator = await ethers.getContractFactory(
-      'MockRandomNumberGenerator'
-    );
-    mockRandomNumberGenerator = await MockRandomNumberGenerator.deploy(
-      5555,
-      lottery.address
-    );
-    await mockRandomNumberGenerator.deployed();
+    MockVRF = await ethers.getContractFactory('Mock_VRFCoordinator');
+    mockVRF = await MockVRF.deploy();
+    await mockVRF.deployed();
 
-    await lottery.initialize(mockRandomNumberGenerator.address);
+    let res = await mockVRF.connect(owner).createSubscription();
+    let { events }: any = await res.wait();
+    const subId = parseInt(events[0].topics[1]); // Subscription ID
+    await mockVRF
+      .connect(owner)
+      .fundSubscription(subId, ethers.utils.parseUnits('3', 18)); // add Link to Subscription ID
+
+    RandomNumberGenerator = await ethers.getContractFactory(
+      'RandomNumberGenerator'
+    );
+    randomNumberGenerator = await RandomNumberGenerator.deploy(
+      subId,
+      lottery.address,
+      mockVRF.address
+    );
+
+    await randomNumberGenerator.deployed();
+
+    await lottery.initialize(randomNumberGenerator.address);
+
+    let addConsumer: any = await mockVRF
+      .connect(owner)
+      .addConsumer(subId, randomNumberGenerator.address);
+    addConsumer = await addConsumer.wait();
   });
 
   describe('Mock token contract', function () {
