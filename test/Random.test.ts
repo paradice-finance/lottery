@@ -1,8 +1,8 @@
-import { expect } from "chai";
-import { ethers } from "hardhat";
-require("dotenv").config({ path: ".env" });
+import { expect } from 'chai';
+import { ethers } from 'hardhat';
+require('dotenv').config({ path: '.env' });
 
-describe("Lottery", function () {
+describe('Lottery', function () {
   let owner: any, A: any, B: any, C: any, D: any;
 
   let Lottery;
@@ -23,7 +23,7 @@ describe("Lottery", function () {
   //   );
   // });
 
-  it("Random", async function () {
+  it('Random', async function () {
     expect(2).to.be.equal(2);
   });
 
