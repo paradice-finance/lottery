@@ -1,19 +1,19 @@
-import { ethers } from 'hardhat';
-import * as chai from 'chai';
-import BN from 'bn.js';
-chai.use(require('chai-bn')(BN));
+import { ethers } from "hardhat";
+import * as chai from "chai";
+import BN from "bn.js";
+chai.use(require("chai-bn")(BN));
 
-require('dotenv').config({ path: '.env' });
-const { lotto } = require('./settings.ts');
+require("dotenv").config({ path: ".env" });
+const { lotto } = require("./settings.ts");
 
-describe('RandomGenerator', function () {
+describe("RandomGenerator", function () {
   let owner: any, buyer: any, buyerWithAllowance: any, C: any, treasury: any;
-  let nullAddress = '0x0000000000000000000000000000000000000000';
+  let nullAddress = "0x0000000000000000000000000000000000000000";
   let allowance = 10000000000000000000000n;
   let Token;
   let token: any;
   let Lottery;
-  let lottery;
+  let lottery: any;
   let MockVRF;
   let mockVRF;
   let RandomNumberGenerator;
@@ -24,10 +24,10 @@ describe('RandomGenerator', function () {
   beforeEach(async () => {
     [owner, buyer, buyerWithAllowance, C, treasury] = await ethers.getSigners();
 
-    Token = await ethers.getContractFactory('Mock_erc20');
+    Token = await ethers.getContractFactory("Mock_erc20");
     token = await (await Token.deploy(100000)).deployed();
 
-    Lottery = await ethers.getContractFactory('Lottery');
+    Lottery = await ethers.getContractFactory("Lottery");
     lottery = await Lottery.deploy(
       token.address,
       lotto.setup.sizeOfLotteryNumbers,
@@ -44,7 +44,7 @@ describe('RandomGenerator', function () {
 
     await token.connect(buyerWithAllowance).approve(lottery.address, allowance);
 
-    MockVRF = await ethers.getContractFactory('Mock_VRFCoordinator');
+    MockVRF = await ethers.getContractFactory("Mock_VRFCoordinator");
     mockVRF = await MockVRF.deploy();
     await mockVRF.deployed();
 
@@ -54,10 +54,10 @@ describe('RandomGenerator', function () {
 
     await mockVRF
       .connect(owner)
-      .fundSubscription(subId, ethers.utils.parseUnits('3', 18)); // add Link to Subscription ID
+      .fundSubscription(subId, ethers.utils.parseUnits("3", 18)); // add Link to Subscription ID
 
     RandomNumberGenerator = await ethers.getContractFactory(
-      'RandomNumberGenerator'
+      "RandomNumberGenerator"
     );
     randomNumberGenerator = await RandomNumberGenerator.deploy(
       subId,
@@ -73,9 +73,9 @@ describe('RandomGenerator', function () {
     addConsumer = await addConsumer.wait();
 
     console.log(
-      'consumer added : id ',
+      "consumer added : id ",
       subId,
-      'random address',
+      "random address",
       randomNumberGenerator.address
     ); // consumer added.
 
@@ -89,13 +89,13 @@ describe('RandomGenerator', function () {
     let result: any = await buy.wait();
 
     let reqId = result.events
-      .filter((x: any) => x.event == 'RequestNumbers')[0]
+      .filter((x: any) => x.event == "RequestNumbers")[0]
       .args[1].toNumber();
 
     console.log(
-      'requestId : ',
+      "requestId : ",
       result.events
-        .filter((x: any) => x.event == 'RequestNumbers')[0]
+        .filter((x: any) => x.event == "RequestNumbers")[0]
         .args[1].toNumber()
     );
 
@@ -107,7 +107,7 @@ describe('RandomGenerator', function () {
     // console.log(final2.events);
 
     console.log(
-      'random result',
+      "random result",
       (await randomNumberGenerator.getRandomResult(reqId)).toNumber()
     );
 
@@ -116,8 +116,8 @@ describe('RandomGenerator', function () {
     // mockVRF = await MockVRF.deploy();
   });
 
-  describe('RequestRandomNumber', function () {
-    it('Should revert when send invalid lotteryId.', async function () {
+  describe("RequestRandomNumber", function () {
+    it("Should revert when send invalid lotteryId.", async function () {
       // await lottery.connect(owner).createNewLotto();
       // await chai
       //   .expect(
