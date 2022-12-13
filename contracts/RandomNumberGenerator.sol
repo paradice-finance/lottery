@@ -8,14 +8,13 @@ import "./ILottery.sol";
 contract RandomNumberGenerator is VRFConsumerBaseV2 {
     uint256 private constant ROLL_IN_PROGRESS = 9999;
 
-    VRFCoordinatorV2Interface COORDINATOR;
+    VRFCoordinatorV2Interface public COORDINATOR;
 
     // Your subscription ID.
     uint64 s_subscriptionId;
 
     // Goerli coordinator. For other networks,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
-    address vrfCoordinator = 0x2Ca8E0C643bDe4C2E08ab1fA0da3401AdAD7734D;
 
     // The gas lane to use, which specifies the maximum gas price to bump to.
     // For a list of available gas lanes on each network,
@@ -35,7 +34,6 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     event FulfillRandomWords(uint256 indexed requestId, uint256 indexed result);
 
     uint256 internal fee;
-    address internal requester;
     uint256 public randomResult;
     uint256 public currentLotteryId;
 
@@ -48,10 +46,11 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
 
     constructor(
         uint64 subscriptionId,
-        address _lottery
-    ) VRFConsumerBaseV2(vrfCoordinator) {
+        address _lottery,
+        address _vrfCoordinator
+    ) VRFConsumerBaseV2(_vrfCoordinator) {
         lottery = _lottery;
-        COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
+        COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         s_owner = msg.sender;
         s_subscriptionId = subscriptionId;
     }
@@ -83,7 +82,7 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     ) internal override {
         uint256 randomValue = randomWords[0] % round_size;
         round_result[requestId] = randomValue;
-        ILottery(requester).fullfilWinningNumber(
+        ILottery(lottery).fullfilWinningNumber(
             currentLotteryId,
             requestId,
             randomValue
