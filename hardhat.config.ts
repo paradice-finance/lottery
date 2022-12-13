@@ -26,29 +26,29 @@ const config = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
-      },
-    },
+        runs: 200
+      }
+    }
   },
   paths: {
     sources: './contracts',
     tests: './test',
     cache: './cache',
-    artifacts: './artifacts',
+    artifacts: './artifacts'
   },
 
   networks: {
     goerli: {
       url: `https://eth-goerli.g.alchemy.com/v2/${GOERLI_API_KEY}`,
-      accounts: [GOERLI_DEPLOYER_PRIVATE_KEY!!],
+      accounts: [GOERLI_DEPLOYER_PRIVATE_KEY!!]
     },
     polygon_mainnet: {
       url: process.env.POLYGON_URL || '',
       accounts:
         process.env.POLYGON_PRIVATE_KEY !== undefined
           ? [process.env.POLYGON_PRIVATE_KEY]
-          : [],
-    },
+          : []
+    }
   },
   gasReporter: {
     enabled: undefined,
@@ -56,14 +56,14 @@ const config = {
     outputFile: 'gas-report.txt',
     noColors: true,
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
-    token: 'MATIC',
+    token: 'MATIC'
   },
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.MUMBAI_POLYGONSCAN_API_KEY || '',
-      rinkeby: process.env.ETHEREUM_ETHERSCAN_API_KEY || '',
-    },
-  },
+      rinkeby: process.env.ETHEREUM_ETHERSCAN_API_KEY || ''
+    }
+  }
 };
 
 export default config;
