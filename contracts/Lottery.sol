@@ -387,16 +387,16 @@ contract Lottery is Ownable, Initializable {
                 allAffiliate_[_affiliateAddress][lotteryIdCounter_] += 1;
                 // add affiliate size
                 sizeOfAffiliate_ += 1;
+                emit Affiliate(
+                    _affiliateAddress,
+                    lotteryIdCounter_,
+                    allAffiliate_[_affiliateAddress][lotteryIdCounter_]
+                );
             }
         }
 
         // Emitting batch buy ticket with all information
         emit NewBatchBuy(msg.sender, lotteryIdCounter_, ticketIds, msg.value);
-        emit Affiliate(
-            _affiliateAddress,
-            lotteryIdCounter_,
-            allAffiliate_[_affiliateAddress][lotteryIdCounter_]
-        );
 
         // check for drawing win ticket
         if (
