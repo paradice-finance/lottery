@@ -49,7 +49,7 @@ describe("RandomGenerator", function () {
     await mockVRF.deployed();
 
     let res = await mockVRF.connect(owner).createSubscription();
-    let { events } = await res.wait();
+    let { events }: any = await res.wait();
     const subId = parseInt(events[0].topics[1]); // Subscription ID
 
     await mockVRF
@@ -67,10 +67,10 @@ describe("RandomGenerator", function () {
 
     await randomNumberGenerator.deployed();
 
-    let addconsumer = await mockVRF
+    let addConsumer: any = await mockVRF
       .connect(owner)
       .addConsumer(subId, randomNumberGenerator.address);
-    addconsumer = await addconsumer.wait();
+    addConsumer = await addConsumer.wait();
 
     console.log(
       "consumer added : id ",
@@ -86,16 +86,16 @@ describe("RandomGenerator", function () {
     let buy = await lottery
       .connect(buyerWithAllowance)
       .batchBuyLottoTicket(5, [1, 2, 3, 4, 5], nullAddress, false);
-    let result = await buy.wait();
+    let result: any = await buy.wait();
 
     let reqId = result.events
-      .filter((x) => x.event == "RequestNumbers")[0]
+      .filter((x: any) => x.event == "RequestNumbers")[0]
       .args[1].toNumber();
 
     console.log(
       "requestId : ",
       result.events
-        .filter((x) => x.event == "RequestNumbers")[0]
+        .filter((x: any) => x.event == "RequestNumbers")[0]
         .args[1].toNumber()
     );
 
