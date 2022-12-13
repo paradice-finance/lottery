@@ -1,18 +1,18 @@
-import { ethers } from "hardhat";
+import { ethers } from 'hardhat';
 
 const { SUBSCRIPTION_ID, TREASURY_ADDRESS, VRF_GEORLI } = process.env;
 async function main() {
-  const MockToken = await ethers.getContractFactory("Mock_erc20");
+  const MockToken = await ethers.getContractFactory('Mock_erc20');
 
   const token = await MockToken.deploy(10000);
   try {
     await token.deployed();
-    console.log("Token address:", token.address);
+    console.log('Token address:', token.address);
   } catch (error: any) {
     console.log(`Deploy Error: ${error.message}`);
   }
 
-  const Lottery = await ethers.getContractFactory("Lottery");
+  const Lottery = await ethers.getContractFactory('Lottery');
 
   const lottery = await Lottery.deploy(
     token.address, //_token
@@ -26,13 +26,13 @@ async function main() {
 
   try {
     await lottery.deployed();
-    console.log("lottery address:", lottery.address);
+    console.log('lottery address:', lottery.address);
   } catch (error: any) {
     console.log(`Lottery Deploy Error: ${error.message}`);
   }
 
   const RandomNumberGenerator = await ethers.getContractFactory(
-    "RandomNumberGenerator"
+    'RandomNumberGenerator'
   );
 
   const randomNumberGenerator = await RandomNumberGenerator.deploy(
@@ -44,7 +44,7 @@ async function main() {
   try {
     await randomNumberGenerator.deployed();
     console.log(
-      "RandomNumberGenerator address:",
+      'RandomNumberGenerator address:',
       randomNumberGenerator.address
     );
   } catch (error: any) {
