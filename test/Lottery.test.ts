@@ -63,6 +63,11 @@ describe("Lottery Contract", function () {
     await randomNumberGenerator.deployed();
 
     await lottery.initialize(randomNumberGenerator.address);
+
+    let addConsumer: any = await mockVRF
+      .connect(owner)
+      .addConsumer(subId, randomNumberGenerator.address);
+    addConsumer = await addConsumer.wait();
   });
 
   describe("Mock token contract", function () {
