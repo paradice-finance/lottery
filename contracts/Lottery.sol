@@ -529,7 +529,7 @@ contract Lottery is Ownable, Initializable {
             require(
                 allLotteries_[_listOfLotterryId[i]].lotteryStatus ==
                     Status.Completed,
-                "Can't claim reward from unfinish round"
+                "Can't claim treasury from unfinish round"
             );
 
             if (allTreasuryAmount_[_listOfLotterryId[i]] > 0) {
