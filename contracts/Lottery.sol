@@ -458,7 +458,8 @@ contract Lottery is Ownable, Initializable {
         );
         allTickets_[_ticketId].claimed = true;
 
-        token_.transfer(
+        IERC20 token = IERC20(allLotteries_[_lotteryId].tokenAddress);
+        token.transfer(
             address(msg.sender),
             (allLotteries_[_lotteryId].ticketPrice *
                 allLotteries_[_lotteryId].sizeOfLottery *
@@ -493,10 +494,10 @@ contract Lottery is Ownable, Initializable {
                     .affiliateRatio) / 100;
 
             if (totalClaimed > 0) {
-                token_ = IERC20(
+                IERC20 token = IERC20(
                     allLotteries_[_listOfLotterryId[i]].tokenAddress
                 );
-                token_.transferFrom(address(this), msg.sender, totalClaimed);
+                token.transferFrom(address(this), msg.sender, totalClaimed);
                 // reset ticket count of lottery id index i to 0
                 allAffiliate_[msg.sender][_listOfLotterryId[i]] = 0;
                 claimedLotteryIds[i] = _listOfLotterryId[i];
@@ -522,13 +523,13 @@ contract Lottery is Ownable, Initializable {
             );
 
             if (allTreasuryAmount_[_listOfLotterryId[i]] > 0) {
-                token_ = IERC20(
+                IERC20 token = IERC20(
                     allLotteries_[_listOfLotterryId[i]].tokenAddress
                 );
                 uint256 treasuryAmount = allTreasuryAmount_[
                     _listOfLotterryId[i]
                 ];
-                token_.transferFrom(address(this), msg.sender, treasuryAmount);
+                token.transferFrom(address(this), msg.sender, treasuryAmount);
                 // reset treasuryAmount of  lottery id index i to 0
                 allTreasuryAmount_[_listOfLotterryId[i]] = 0;
                 // reset ticket count of lottery id index i to 0

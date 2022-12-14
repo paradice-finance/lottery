@@ -18,7 +18,7 @@ describe('Lottery Contract', function () {
   let mockVRF: any;
   let nullAddress = '0x0000000000000000000000000000000000000000';
   let affiliateAddress = '0x1ecB3e701417D9e672300AD9b9a1747bC6E6FB79';
-  let allowance = 10000000000000000000000n;
+  let allowance = 10000000000000000000000n; // 10000 * 10 ** 18
   let setup = lotto.setup;
   let errors = lotto.errors;
   let events = lotto.events;
@@ -268,6 +268,11 @@ describe('Lottery Contract', function () {
             false
           )
       ).to.emit(lottery, events.close);
+
+      assert.equal(
+        await token.balanceOf(buyerWithAllowance.address),
+        setup.balanceAfterBuy
+      );
     });
   });
 
@@ -369,6 +374,10 @@ describe('Lottery Contract', function () {
       await expect(
         await lottery.connect(buyerWithAllowance).claimWinReward(1, 2)
       ).to.emit(lottery, events.claimWinReward);
+      assert.equal(
+        await token.balanceOf(buyerWithAllowance.address),
+        setup.balanceAfterClaimReward
+      );
     });
   });
 
