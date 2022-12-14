@@ -25,16 +25,16 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     uint32 numWords = 1;
     address s_owner;
 
-    mapping(uint256 => uint256) private requestRandom;
-    mapping(uint256 => uint256) public round_result;
-    uint256 internal round_size;
-
     event RequestRandomNumber(uint256 lotteryId, uint256 requestId);
     event FulfillRandomWords(uint256 indexed requestId, uint256 indexed result);
 
-    uint256 internal fee;
-    uint256 public randomResult;
-    uint256 public currentLotteryId;
+    struct RandomInfo {
+        uint256 lotteryId; // ID for lotto
+        uint256 randomValue; // Status for lotto
+        uint256 roundSize; // Number of players
+    }
+
+    mapping(uint256 => RandomInfo) private randomInfo_;
 
     address public lottery;
 
@@ -60,7 +60,7 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
      * Requests randomness from a user-provided seed
      */
     function requestRandomNumber(
-        uint256 lotteryId_,
+        uint256 _lotteryId,
         uint256 _round_size
     ) public onlyLottery returns (uint256 requestId) {
         requestId = COORDINATOR.requestRandomWords(
@@ -70,21 +70,20 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
             callbackGasLimit,
             numWords
         );
-        currentLotteryId = lotteryId_;
-        round_result[requestId] = ROLL_IN_PROGRESS;
-        round_size = _round_size;
+        randomInfo_[requestId].lotteryId = _lotteryId;
+        randomInfo_[requestId].randomValue = ROLL_IN_PROGRESS;
+        randomInfo_[requestId].roundSize = _round_size;
 
-        emit RequestRandomNumber(lotteryId_, requestId);
+        emit RequestRandomNumber(_lotteryId, requestId);
     }
 
     function fulfillRandomWords(
         uint256 requestId,
         uint256[] memory randomWords
     ) internal override {
-        uint256 randomValue = randomWords[0] % round_size;
-        round_result[requestId] = randomValue;
+        uint256 randomValue = randomWords[0] % randomInfo_[requestId].roundSize;
         ILottery(lottery).fullfilWinningNumber(
-            currentLotteryId,
+            randomInfo_[requestId].lotteryId,
             requestId,
             randomValue
         );
@@ -92,12 +91,9 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
         emit FulfillRandomWords(requestId, randomValue);
     }
 
-    function getRandomResult(uint256 requestId) public view returns (uint256) {
-        require(
-            round_result[requestId] != ROLL_IN_PROGRESS,
-            "Draw In Progress."
-        );
-
-        return round_result[requestId];
+    function getRandomInfo(
+        uint256 requestId
+    ) public view returns (RandomInfo memory) {
+        return randomInfo_[requestId];
     }
 }

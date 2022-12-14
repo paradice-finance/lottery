@@ -21,7 +21,10 @@ const lotto = {
     config: 'ConfigLottery',
     batchBuy: 'NewBatchBuy',
     affiliate: 'Affiliate',
-    close: 'LotteryClose'
+    close: 'LotteryClose',
+    requestRandom: 'RequestRandomNumber',
+    requestWinning: 'RequestWinningNumbers',
+    fulfillRandom: 'FulfillRandomWords'
   },
   errors: {
     invalid_admin: 'Ownable: caller is not the owner',

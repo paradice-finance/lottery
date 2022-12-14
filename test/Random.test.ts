@@ -95,7 +95,7 @@ describe('RandomGenerator', function () {
             nullAddress,
             false
           )
-      ).to.emit(randomNumberGenerator, 'RequestRandomNumber');
+      ).to.emit(randomNumberGenerator, lotto.event.requestRandom);
     });
   });
 
@@ -109,17 +109,14 @@ describe('RandomGenerator', function () {
       let result: any = await buy.wait();
 
       let reqId: any = result.events.filter(
-        (x: any) => x.event == 'RequestWinningNumbers'
+        (event: any) => event.event == lotto.event.requestWinning
       )[0].args[1];
 
       await expect(
-        await mockVRF
+        mockVRF
           .connect(owner)
           .fulfillRandomWords(reqId, randomNumberGenerator.address)
-      ).to.emit(mockVRF, 'RandomWordsFulfilled');
-      const roundResult = await randomNumberGenerator.getRandomResult(reqId);
-
-      await expect(roundResult.toNumber()).to.greaterThanOrEqual(0);
+      ).to.emit(randomNumberGenerator, lotto.event.fulfillRandom);
     });
   });
 });
