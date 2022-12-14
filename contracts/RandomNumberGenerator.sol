@@ -6,7 +6,7 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "./ILottery.sol";
 
 contract RandomNumberGenerator is VRFConsumerBaseV2 {
-    uint256 private constant ROLL_IN_PROGRESS = 999999999;
+    uint32 private constant ROLL_IN_PROGRESS = 999999999;
 
     VRFCoordinatorV2Interface public COORDINATOR;
 
@@ -34,7 +34,8 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
         uint256 roundSize; // Number of players
     }
 
-    mapping(uint256 => RandomInfo) private randomInfo_;
+    // requestId to RandomInfo
+    mapping(uint256 => RandomInfo) private allRandomInfo_;
 
     address public lottery;
 
@@ -70,9 +71,9 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
             callbackGasLimit,
             numWords
         );
-        randomInfo_[requestId].lotteryId = _lotteryId;
-        randomInfo_[requestId].randomValue = ROLL_IN_PROGRESS;
-        randomInfo_[requestId].roundSize = _round_size;
+        allRandomInfo_[requestId].lotteryId = _lotteryId;
+        allRandomInfo_[requestId].randomValue = ROLL_IN_PROGRESS;
+        allRandomInfo_[requestId].roundSize = _round_size;
 
         emit RequestRandomNumber(_lotteryId, requestId);
     }
@@ -81,9 +82,11 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
         uint256 requestId,
         uint256[] memory randomWords
     ) internal override {
-        uint256 randomValue = randomWords[0] % randomInfo_[requestId].roundSize;
+        uint256 randomValue = randomWords[0] %
+            allRandomInfo_[requestId].roundSize;
+        allRandomInfo_[requestId].randomValue = randomValue;
         ILottery(lottery).fullfilWinningNumber(
-            randomInfo_[requestId].lotteryId,
+            allRandomInfo_[requestId].lotteryId,
             requestId,
             randomValue
         );
@@ -94,6 +97,6 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     function getRandomInfo(
         uint256 requestId
     ) public view returns (RandomInfo memory) {
-        return randomInfo_[requestId];
+        return allRandomInfo_[requestId];
     }
 }
