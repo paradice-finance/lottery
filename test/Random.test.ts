@@ -20,6 +20,8 @@ describe('RandomGenerator', function () {
   let RandomNumberGenerator;
   let randomNumberGenerator: any;
   let subId: any;
+  let events = lotto.events;
+  let errors = lotto.errors;
 
   beforeEach(async () => {
     [owner, buyer, buyerWithAllowance, C, treasury] = await ethers.getSigners();
@@ -80,7 +82,7 @@ describe('RandomGenerator', function () {
     it('Should revert when not called by Lottery address.', async function () {
       await expect(
         randomNumberGenerator.connect(owner).requestRandomNumber(1, 1)
-      ).to.be.revertedWith(lotto.errors.invalid_random_caller);
+      ).to.be.revertedWith(errors.invalid_random_caller);
     });
 
     it('Should emit event RequestRandomNumber when success.', async function () {
@@ -95,7 +97,7 @@ describe('RandomGenerator', function () {
             nullAddress,
             false
           )
-      ).to.emit(randomNumberGenerator, lotto.event.requestRandom);
+      ).to.emit(randomNumberGenerator, events.requestRandom);
     });
   });
 
@@ -109,14 +111,14 @@ describe('RandomGenerator', function () {
       let result: any = await buy.wait();
 
       let reqId: any = result.events.filter(
-        (event: any) => event.event == lotto.event.requestWinning
+        (event: any) => event.event == events.requestWinningNumber
       )[0].args[1];
 
       await expect(
         mockVRF
           .connect(owner)
           .fulfillRandomWords(reqId, randomNumberGenerator.address)
-      ).to.emit(randomNumberGenerator, lotto.event.fulfillRandom);
+      ).to.emit(randomNumberGenerator, events.fulfillRandom);
     });
   });
 });
