@@ -26,6 +26,13 @@ const lotto = {
     requestRandom: 'RequestRandomNumber',
     requestWinning: 'RequestWinningNumbers',
     fulfillRandom: 'FulfillRandomWords',
+    requestWinningNumber: 'RequestWinningNumbers',
+    fullfilWinningNumber: 'FullfilWinningNumber',
+  },
+  status: {
+    open: 0,
+    closed: 1,
+    completed: 2,
   },
   errors: {
     invalid_admin: 'Ownable: caller is not the owner',
