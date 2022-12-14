@@ -1,4 +1,4 @@
-import { expect, use as chaiUse } from 'chai';
+import { expect, assert, use as chaiUse } from 'chai';
 import BN from 'bn.js';
 chaiUse(require('chai-bn')(BN));
 
@@ -278,21 +278,45 @@ describe('Lottery Contract', function () {
             nullAddress,
             false
           )
-      ).to.emit(lottery, lotto.event.winningNumber);
+      ).to.emit(lottery, lotto.event.requestWinningNumber);
     });
   });
 
   describe('Fullfil winning number', function () {
     it('should revert when caller is not RandomNumberGenerator', async function () {
       await expect(
-        lottery.connect(owner).fullfilWinningNumber(1, 1, 1)
+        lottery.connect(owner).fullfilWinningNumber(1, 1)
       ).to.be.revertedWith(lotto.errors.invalid_random_generator);
     });
-    it('should revert when current lotteryStatus is not Closed', async function () {});
-    // it('should revert when invalid _requestId', async function () {});
     // it('should transfer to treasury address equal to pool - aff - winner', async function () {});
-    // it('should update lottery status to "Completed" when success', async function () {});
-    // it('should emit event WinningTicket when success', async function () {});
+    it('should emit event WinningTicket when success', async function () {
+      await lottery.connect(owner).createNewLotto();
+      let allEvent = await (
+        await lottery
+          .connect(buyerWithAllowance)
+          .batchBuyLottoTicket(
+            lotto.setup.sizeOfLotteryNumbers,
+            lotto.setup.chosenNumbersForEachTicket,
+            nullAddress,
+            false
+          )
+      ).wait();
+
+      let eventWinningNumber = allEvent.events.filter(
+        (x: any) => x.event == lotto.event.requestWinningNumber
+      );
+      let lotteryId = eventWinningNumber[0].args[0].toNumber();
+      let requestId = eventWinningNumber[0].args[1].toNumber();
+
+      await expect(
+        await mockVRF
+          .connect(owner)
+          .fulfillRandomWords(requestId, randomNumberGenerator.address)
+      ).to.emit(lottery, lotto.event.fullfilWinningNumber);
+
+      let lotteryInfoAfter = await lottery.getBasicLottoInfo(lotteryId);
+      assert.equal(lotteryInfoAfter.lotteryStatus, lotto.status.completed);
+    });
   });
 
   // describe('Claim win reward', function () {

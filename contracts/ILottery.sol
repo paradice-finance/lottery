@@ -7,7 +7,6 @@ interface ILottery {
     //-------------------------------------------------------------------------
     function fullfilWinningNumber(
         uint256 _lotteryId,
-        uint256 _requestId,
         uint256 _randomNumber
     ) external;
 }

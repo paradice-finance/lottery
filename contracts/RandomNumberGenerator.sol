@@ -82,11 +82,7 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     ) internal override {
         uint256 randomValue = randomWords[0] % round_size;
         round_result[requestId] = randomValue;
-        ILottery(lottery).fullfilWinningNumber(
-            currentLotteryId,
-            requestId,
-            randomValue
-        );
+        ILottery(lottery).fullfilWinningNumber(currentLotteryId, randomValue);
 
         emit FulfillRandomWords(requestId, randomValue);
     }

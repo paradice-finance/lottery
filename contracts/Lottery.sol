@@ -41,7 +41,6 @@ contract Lottery is Ownable, Initializable {
 
     // Represents the status of the lottery
     enum Status {
-        NotStarted, // The lottery has not started yet
         Open, // The lottery is open for ticket purchases
         Closed, // The lottery is no longer open for ticket purchases
         Completed // The lottery has been closed and the numbers drawn
@@ -95,7 +94,7 @@ contract Lottery is Ownable, Initializable {
 
     event RequestWinningNumbers(uint256 lotteryId, uint256 requestId);
 
-    event WinningTicket(
+    event FullfilWinningNumber(
         uint256 lotteryId,
         uint256 ticketId,
         uint256 ticketNumber
@@ -275,7 +274,7 @@ contract Lottery is Ownable, Initializable {
         PrizeDistribution memory prizeDistribution = PrizeDistribution(
             winnerRatio_,
             treasuryRatio_,
-            winnerRatio_
+            affiliateRatio_
         );
 
         // Saving data in struct
@@ -411,15 +410,8 @@ contract Lottery is Ownable, Initializable {
 
     function fullfilWinningNumber(
         uint256 _lotteryId,
-        uint256 _requestId,
         uint256 _randomIndex
     ) external onlyRandomGenerator {
-        require(
-            allLotteries_[_lotteryId].lotteryStatus == Status.Closed,
-            "Can not draw when not in closed status"
-        );
-        require(requestId_ == _requestId, "Invalid request id");
-
         allLotteries_[_lotteryId].winningTicketId = currentTickets_[
             _randomIndex
         ];
@@ -436,7 +428,7 @@ contract Lottery is Ownable, Initializable {
         sizeOfAffiliate_ = 0;
         allTreasuryAmount_[_lotteryId] = treasuryEquity;
 
-        emit WinningTicket(
+        emit FullfilWinningNumber(
             _lotteryId,
             currentTickets_[_randomIndex],
             allTickets_[currentTickets_[_randomIndex]].number
