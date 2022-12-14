@@ -51,6 +51,7 @@ const lotto = {
     invalid_ticket_id: 'Invalid ticketId.',
     invalid_claim_not_complete: "Can't claim reward from unfinished round",
     invalid_ticket_owner: "You are not ticket's owner.",
+    invalid_claim_twice: 'The reward was claimed.',
     create_new_lottery_when_previous_lottery_not_finished:
       'Cannot be created if the current lotto are not finished.',
     config_new_lottery_when_previous_lottery_not_finished:

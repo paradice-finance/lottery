@@ -19,11 +19,6 @@ describe('Lottery Contract', function () {
   let nullAddress = '0x0000000000000000000000000000000000000000';
   let affiliateAddress = '0x1ecB3e701417D9e672300AD9b9a1747bC6E6FB79';
   let allowance = 10000000000000000000000n;
-  // let setup: any;
-  // let errors: any;
-  // let events: any;
-  // let status: any;
-  // [setup, errors, events, status] = lotto;
   let setup = lotto.setup;
   let errors = lotto.errors;
   let events = lotto.events;
@@ -364,8 +359,12 @@ describe('Lottery Contract', function () {
         lottery.connect(buyer).claimWinReward(1, 1)
       ).to.be.revertedWith(errors.invalid_ticket_owner);
     });
-    it('should revert when winner claim twice', async function () {});
-    it("should revert when can't transfer token to winner", async function () {});
+    it('should revert when winner claim twice', async function () {
+      await lottery.connect(buyerWithAllowance).claimWinReward(1, 2);
+      await expect(
+        lottery.connect(buyerWithAllowance).claimWinReward(1, 2)
+      ).to.be.revertedWith(errors.invalid_claim_twice);
+    });
     it('should emit event ClaimWinReward when success', async function () {
       await expect(
         await lottery.connect(buyerWithAllowance).claimWinReward(1, 2)
