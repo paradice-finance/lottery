@@ -458,9 +458,8 @@ contract Lottery is Ownable, Initializable {
         );
         allTickets_[_ticketId].claimed = true;
 
-        token_.transferFrom(
-            address(this),
-            msg.sender,
+        token_.transfer(
+            address(msg.sender),
             (allLotteries_[_lotteryId].ticketPrice *
                 allLotteries_[_lotteryId].sizeOfLottery *
                 winnerRatio_) / 100
