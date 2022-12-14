@@ -24,7 +24,6 @@ const lotto = {
     affiliate: 'Affiliate',
     close: 'LotteryClose',
     requestRandom: 'RequestRandomNumber',
-    requestWinning: 'RequestWinningNumbers',
     fulfillRandom: 'FulfillRandomWords',
     requestWinningNumber: 'RequestWinningNumbers',
     fullfilWinningNumber: 'FullfilWinningNumber',
