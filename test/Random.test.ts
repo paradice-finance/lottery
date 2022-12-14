@@ -1,8 +1,8 @@
 import { ethers } from 'hardhat';
-import * as chai from 'chai';
+import { expect, use } from 'chai';
 import BN from 'bn.js';
+use(require('chai-bn')(BN));
 import { BigNumber } from 'ethers';
-chai.use(require('chai-bn')(BN));
 
 require('dotenv').config({ path: '.env' });
 const { lotto } = require('./settings.ts');
@@ -16,11 +16,10 @@ describe('RandomGenerator', function () {
   let Lottery;
   let lottery: any;
   let MockVRF;
-  let mockVRF;
+  let mockVRF: any;
   let RandomNumberGenerator;
   let randomNumberGenerator: any;
-  let round_size: number;
-  let ticket_price;
+  let subId: any;
 
   beforeEach(async () => {
     [owner, buyer, buyerWithAllowance, C, treasury] = await ethers.getSigners();
@@ -51,7 +50,7 @@ describe('RandomGenerator', function () {
 
     let res = await mockVRF.connect(owner).createSubscription();
     let { events }: any = await res.wait();
-    const subId = parseInt(events[0].topics[1]); // Subscription ID
+    subId = parseInt(events[0].topics[1]); // Subscription ID
 
     await mockVRF
       .connect(owner)
@@ -63,68 +62,45 @@ describe('RandomGenerator', function () {
     randomNumberGenerator = await RandomNumberGenerator.deploy(
       subId,
       lottery.address,
-      mockVRF.address
+      mockVRF.address,
+      lotto.chainLink.goerli.keyHash
     );
 
     await randomNumberGenerator.deployed();
 
-    let addConsumer: any = await mockVRF
+    // add consumer
+    await mockVRF
       .connect(owner)
       .addConsumer(subId, randomNumberGenerator.address);
-    addConsumer = await addConsumer.wait();
-
-    console.log(
-      'consumer added : id ',
-      subId,
-      'random address',
-      randomNumberGenerator.address
-    ); // consumer added.
 
     await lottery.initialize(randomNumberGenerator.address);
-
-    // await lottery.connect(owner).createNewLotto();
-
-    // let buy = await lottery
-    //   .connect(buyerWithAllowance)
-    //   .batchBuyLottoTicket(5, [1, 2, 3, 4, 5], nullAddress, false);
-    // let result: any = await buy.wait();
-
-    // let reqId = result.events
-    //   .filter((x: any) => x.event == "RequestNumbers")[0]
-    //   .args[1].toNumber();
-
-    // console.log(
-    //   "requestId : ",
-    //   result.events
-    //     .filter((x: any) => x.event == "RequestNumbers")[0]
-    //     .args[1].toNumber()
-    // );
-
-    // //fulfill
-    // let final = await mockVRF
-    //   .connect(owner)
-    //   .fulfillRandomWords(reqId, randomNumberGenerator.address);
-    // let final2 = await final.wait();
-    // // console.log(final2.events);
-
-    // console.log(
-    //   "random result",
-    //   (await randomNumberGenerator.getRandomResult(reqId)).toNumber()
-    // );
-
-    // console.log(res3.events);
-    // MockVRF = await ethers.getContractFactory("Mock_VRFCoordinator");
-    // mockVRF = await MockVRF.deploy();
   });
 
   describe('RequestRandomNumber', function () {
-    it('Should revert when send invalid lotteryId.', async function () {});
-    it('Should revert when send invalid roundSize input.', async function () {});
     it('Should revert when not called by Lottery address.', async function () {
-      // await chai.expect(reqId).to.equal(1);
+      await expect(
+        randomNumberGenerator.connect(owner).requestRandomNumber(1, 1)
+      ).to.be.revertedWith(lotto.errors.invalid_random_caller);
     });
 
-    it('Should emit event requestRandomNumber when success.', async function () {
+    it('Should emit event RequestRandomNumber when success.', async function () {
+      await lottery.connect(owner).createNewLotto();
+
+      await expect(
+        await lottery
+          .connect(buyerWithAllowance)
+          .batchBuyLottoTicket(
+            lotto.setup.sizeOfLotteryNumbers,
+            [1, 2, 3, 4, 5],
+            nullAddress,
+            false
+          )
+      ).to.emit(randomNumberGenerator, lotto.event.requestRandom);
+    });
+  });
+
+  describe('FulfillRandomWords', function () {
+    it('Should emit event RandomWordsFulfilled when success.', async function () {
       await lottery.connect(owner).createNewLotto();
 
       let buy = await lottery
@@ -133,16 +109,14 @@ describe('RandomGenerator', function () {
       let result: any = await buy.wait();
 
       let reqId: any = result.events.filter(
-        (x: any) => x.event == 'RequestWinningNumbers'
+        (event: any) => event.event == lotto.event.requestWinning
       )[0].args[1];
 
-      console.log('test', reqId);
+      await expect(
+        mockVRF
+          .connect(owner)
+          .fulfillRandomWords(reqId, randomNumberGenerator.address)
+      ).to.emit(randomNumberGenerator, lotto.event.fulfillRandom);
     });
   });
-
-  // describe("FulfillRandomWords", function () {
-  //   it("Should revert when not called by LINK SmartContract.", async function () {});
-  //   it("Should revert when random value greater than or equal round size.", async function () {});
-  //   it("Should emit event fulfillRandomWords when success.", async function () {});
-  // });
 });

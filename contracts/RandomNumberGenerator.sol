@@ -6,7 +6,7 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "./ILottery.sol";
 
 contract RandomNumberGenerator is VRFConsumerBaseV2 {
-    uint256 private constant ROLL_IN_PROGRESS = 9999;
+    uint32 private constant ROLL_IN_PROGRESS = 999999999;
 
     VRFCoordinatorV2Interface public COORDINATOR;
 
@@ -19,23 +19,23 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     // The gas lane to use, which specifies the maximum gas price to bump to.
     // For a list of available gas lanes on each network,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
-    bytes32 s_keyHash =
-        0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15;
+    bytes32 s_keyHash;
     uint32 callbackGasLimit = 250000;
     uint16 requestConfirmations = 3;
     uint32 numWords = 1;
     address s_owner;
 
-    mapping(uint256 => uint256) private requestRandom;
-    mapping(uint256 => uint256) public round_result;
-    uint256 internal round_size;
-
     event RequestRandomNumber(uint256 lotteryId, uint256 requestId);
     event FulfillRandomWords(uint256 indexed requestId, uint256 indexed result);
 
-    uint256 internal fee;
-    uint256 public randomResult;
-    uint256 public currentLotteryId;
+    struct RandomInfo {
+        uint256 lotteryId; // ID for lotto
+        uint256 randomValue; // Status for lotto
+        uint256 roundSize; // Number of players
+    }
+
+    // requestId to RandomInfo
+    mapping(uint256 => RandomInfo) private allRandomInfo_;
 
     address public lottery;
 
@@ -47,19 +47,21 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     constructor(
         uint64 subscriptionId,
         address _lottery,
-        address _vrfCoordinator
+        address _vrfCoordinator,
+        bytes32 _s_keyHash
     ) VRFConsumerBaseV2(_vrfCoordinator) {
         lottery = _lottery;
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         s_owner = msg.sender;
         s_subscriptionId = subscriptionId;
+        s_keyHash = _s_keyHash;
     }
 
     /**
      * Requests randomness from a user-provided seed
      */
     function requestRandomNumber(
-        uint256 lotteryId_,
+        uint256 _lotteryId,
         uint256 _round_size
     ) public onlyLottery returns (uint256 requestId) {
         requestId = COORDINATOR.requestRandomWords(
@@ -69,21 +71,22 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
             callbackGasLimit,
             numWords
         );
-        currentLotteryId = lotteryId_;
-        round_result[requestId] = ROLL_IN_PROGRESS;
-        round_size = _round_size;
+        allRandomInfo_[requestId].lotteryId = _lotteryId;
+        allRandomInfo_[requestId].randomValue = ROLL_IN_PROGRESS;
+        allRandomInfo_[requestId].roundSize = _round_size;
 
-        emit RequestRandomNumber(lotteryId_, requestId);
+        emit RequestRandomNumber(_lotteryId, requestId);
     }
 
     function fulfillRandomWords(
         uint256 requestId,
         uint256[] memory randomWords
     ) internal override {
-        uint256 randomValue = randomWords[0] % round_size;
-        round_result[requestId] = randomValue;
+        uint256 randomValue = randomWords[0] %
+            allRandomInfo_[requestId].roundSize;
+        allRandomInfo_[requestId].randomValue = randomValue;
         ILottery(lottery).fullfilWinningNumber(
-            currentLotteryId,
+            allRandomInfo_[requestId].lotteryId,
             requestId,
             randomValue
         );
@@ -91,12 +94,9 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
         emit FulfillRandomWords(requestId, randomValue);
     }
 
-    function getRandomResult(uint256 requestId) public view returns (uint256) {
-        require(
-            round_result[requestId] != ROLL_IN_PROGRESS,
-            "Draw In Progress."
-        );
-
-        return round_result[requestId];
+    function getRandomInfo(
+        uint256 requestId
+    ) public view returns (RandomInfo memory) {
+        return allRandomInfo_[requestId];
     }
 }

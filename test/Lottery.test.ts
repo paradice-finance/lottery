@@ -57,7 +57,8 @@ describe('Lottery Contract', function () {
     randomNumberGenerator = await RandomNumberGenerator.deploy(
       subId,
       lottery.address,
-      mockVRF.address
+      mockVRF.address,
+      lotto.chainLink.goerli.keyHash
     );
 
     await randomNumberGenerator.deployed();

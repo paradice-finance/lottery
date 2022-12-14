@@ -1,6 +1,6 @@
 import { ethers } from 'hardhat';
 
-const { SUBSCRIPTION_ID } = process.env;
+const { SUBSCRIPTION_ID, GOERLI_LINK_KEY_HASH } = process.env;
 async function main() {
   const MockToken = await ethers.getContractFactory('MockToken');
 
@@ -37,7 +37,8 @@ async function main() {
 
   const randomNumberGenerator = await RandomNumberGenerator.deploy(
     SUBSCRIPTION_ID!!,
-    lottery.address
+    lottery.address,
+    GOERLI_LINK_KEY_HASH!!
   );
 
   try {

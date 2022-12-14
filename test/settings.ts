@@ -10,16 +10,21 @@ const lotto = {
     winnerRatio: 95
   },
   chainLink: {
-    keyHash:
-      '0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4',
-    fee: ethers.utils.parseUnits('1', 19)
+    goerli: {
+      keyHash:
+        '0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15',
+      fee: ethers.utils.parseUnits('1', 19)
+    }
   },
   event: {
     new: 'LotteryOpen',
     config: 'ConfigLottery',
     batchBuy: 'NewBatchBuy',
     affiliate: 'Affiliate',
-    close: 'LotteryClose'
+    close: 'LotteryClose',
+    requestRandom: 'RequestRandomNumber',
+    requestWinning: 'RequestWinningNumbers',
+    fulfillRandom: 'FulfillRandomWords'
   },
   errors: {
     invalid_admin: 'Ownable: caller is not the owner',
@@ -35,7 +40,8 @@ const lotto = {
     create_new_lottery_when_previous_lottery_not_finished:
       'Cannot be created if the current lotto are not finished.',
     config_new_lottery_when_previous_lottery_not_finished:
-      'Cannot be config if the current lotto are not finished.'
+      'Cannot be config if the current lotto are not finished.',
+    invalid_random_caller: 'Only Lottery can call function'
   }
 };
 
