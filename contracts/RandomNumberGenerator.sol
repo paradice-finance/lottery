@@ -6,7 +6,7 @@ import "@chainlink/contracts/src/v0.8/VRFConsumerBaseV2.sol";
 import "./ILottery.sol";
 
 contract RandomNumberGenerator is VRFConsumerBaseV2 {
-    uint256 private constant ROLL_IN_PROGRESS = 9999;
+    uint256 private constant ROLL_IN_PROGRESS = 999999999;
 
     VRFCoordinatorV2Interface public COORDINATOR;
 
@@ -19,8 +19,7 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     // The gas lane to use, which specifies the maximum gas price to bump to.
     // For a list of available gas lanes on each network,
     // see https://docs.chain.link/docs/vrf-contracts/#configurations
-    bytes32 s_keyHash =
-        0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15;
+    bytes32 s_keyHash;
     uint32 callbackGasLimit = 250000;
     uint16 requestConfirmations = 3;
     uint32 numWords = 1;
@@ -47,12 +46,14 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
     constructor(
         uint64 subscriptionId,
         address _lottery,
-        address _vrfCoordinator
+        address _vrfCoordinator,
+        bytes32 _s_keyHash
     ) VRFConsumerBaseV2(_vrfCoordinator) {
         lottery = _lottery;
         COORDINATOR = VRFCoordinatorV2Interface(_vrfCoordinator);
         s_owner = msg.sender;
         s_subscriptionId = subscriptionId;
+        s_keyHash = _s_keyHash;
     }
 
     /**
