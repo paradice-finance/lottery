@@ -288,8 +288,7 @@ describe('Lottery Contract', function () {
         lottery.connect(owner).fullfilWinningNumber(1, 1)
       ).to.be.revertedWith(lotto.errors.invalid_random_generator);
     });
-    // it('should transfer to treasury address equal to pool - aff - winner', async function () {});
-    it('should emit event WinningTicket when success', async function () {
+    it('should emit event winning number and change lottery status to completed when success', async function () {
       await lottery.connect(owner).createNewLotto();
       let allEvent = await (
         await lottery
