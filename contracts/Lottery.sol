@@ -18,8 +18,6 @@ contract Lottery is Ownable, Initializable {
     address private treasuryAddress_;
     // Storing of the randomness generator
     IRandomNumberGenerator internal randomGenerator_;
-    // Request ID for random number
-    uint256 internal requestId_;
     // Counter for lottery IDs
     uint256 private lotteryIdCounter_;
     // Counter for ticket ids
@@ -544,13 +542,13 @@ contract Lottery is Ownable, Initializable {
 
     receive() external payable {}
 
-    function requestWinningNumber() private {
+    function requestWinningNumber() private returns (uint256 requestId) {
         // Requests a request number from the generator
-        requestId_ = randomGenerator_.requestRandomNumber(
+        requestId = randomGenerator_.requestRandomNumber(
             lotteryIdCounter_,
             sizeOfLottery_
         );
 
-        emit RequestWinningNumbers(lotteryIdCounter_, requestId_);
+        emit RequestWinningNumbers(lotteryIdCounter_, requestId);
     }
 }
