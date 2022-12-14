@@ -444,11 +444,11 @@ contract Lottery is Ownable, Initializable {
         // Checks lottery numbers have not already been drawn
         require(
             allLotteries_[_lotteryId].lotteryStatus == Status.Completed,
-            "Winning number is not chosen yet."
+            "Can't claim reward from unfinished round"
         );
 
         require(
-            msg.sender != allTickets_[_ticketId].owner,
+            msg.sender == allTickets_[_ticketId].owner,
             "You are not ticket's owner."
         );
 
@@ -482,7 +482,7 @@ contract Lottery is Ownable, Initializable {
             require(
                 allLotteries_[_listOfLotterryId[i]].lotteryStatus ==
                     Status.Completed,
-                "Can't claim reward from unfinish round"
+                "Can't claim affiliate from unfinished round"
             );
 
             // totalClaimed = ticket count * ticket price * ratio / 100
@@ -519,7 +519,7 @@ contract Lottery is Ownable, Initializable {
             require(
                 allLotteries_[_listOfLotterryId[i]].lotteryStatus ==
                     Status.Completed,
-                "Can't claim treasury from unfinish round"
+                "Can't claim treasury from unfinished round"
             );
 
             if (allTreasuryAmount_[_listOfLotterryId[i]] > 0) {
