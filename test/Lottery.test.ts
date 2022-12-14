@@ -18,7 +18,6 @@ describe('Lottery Contract', function () {
   let mockVRF: any;
   let nullAddress = '0x0000000000000000000000000000000000000000';
   let affiliateAddress = '0x1ecB3e701417D9e672300AD9b9a1747bC6E6FB79';
-  let allowance = 10000000000000000000000n; // 10000 * 10 ** 18
   let setup = lotto.setup;
   let errors = lotto.errors;
   let events = lotto.events;
@@ -29,7 +28,9 @@ describe('Lottery Contract', function () {
 
     Token = await ethers.getContractFactory('Mock_erc20');
     token = await (await Token.deploy(100000)).deployed();
-    await token.connect(owner).transfer(buyerWithAllowance.address, allowance);
+    await token
+      .connect(owner)
+      .transfer(buyerWithAllowance.address, setup.balance);
 
     Lottery = await ethers.getContractFactory('Lottery');
     lottery = await Lottery.deploy(
@@ -43,7 +44,9 @@ describe('Lottery Contract', function () {
     );
     await lottery.deployed();
 
-    await token.connect(buyerWithAllowance).approve(lottery.address, allowance);
+    await token
+      .connect(buyerWithAllowance)
+      .approve(lottery.address, setup.balance);
 
     MockVRF = await ethers.getContractFactory('Mock_VRFCoordinator');
     mockVRF = await MockVRF.deploy();
