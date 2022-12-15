@@ -6,6 +6,7 @@ const lotto = {
     balance: 10000000000000000000000n,
     balanceAfterBuy: 9995000000000000000000n,
     balanceAfterClaimReward: 9999750000000000000000n,
+    sellerBalanceAfterClaim: 50000000000000000n,
     sizeOfLotteryNumbers: 5,
     ticketPrice: 1,
     treasuryRatio: 4,
@@ -31,6 +32,7 @@ const lotto = {
     requestWinningNumber: 'RequestWinningNumbers',
     fullfilWinningNumber: 'FullfilWinningNumber',
     claimWinReward: 'ClaimWinReward',
+    claimedAffiliate: 'ClaimedAffiliate',
   },
   status: {
     open: 0,
@@ -54,6 +56,8 @@ const lotto = {
     invalid_claim_not_complete: "Can't claim reward from unfinished round",
     invalid_ticket_owner: "You are not ticket's owner.",
     invalid_claim_twice: 'The reward was claimed.',
+    invalid_claim_aff_not_complete:
+      "Can't claim affiliate from unfinished round",
     create_new_lottery_when_previous_lottery_not_finished:
       'Cannot be created if the current lotto are not finished.',
     config_new_lottery_when_previous_lottery_not_finished:

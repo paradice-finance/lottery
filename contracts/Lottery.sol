@@ -258,6 +258,18 @@ contract Lottery is Ownable, Initializable {
         return sizeOfLottery_ - currentTickets_.length;
     }
 
+    function getAffiliateTicketQty(
+        uint256[] memory _lotteryId
+    ) external view returns (uint256[] memory, uint256[] memory) {
+        uint256[] memory lotteryIds = new uint256[](_lotteryId.length);
+        uint256[] memory ticketCount = new uint256[](_lotteryId.length);
+        for (uint256 i = 0; i < _lotteryId.length; i++) {
+            lotteryIds[i] = _lotteryId[i];
+            ticketCount[i] = allAffiliate_[msg.sender][_lotteryId[i]];
+        }
+        return (lotteryIds, ticketCount);
+    }
+
     function createNewLotto() external onlyOwner returns (uint256) {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed,
@@ -497,7 +509,7 @@ contract Lottery is Ownable, Initializable {
                 IERC20 token = IERC20(
                     allLotteries_[_listOfLotterryId[i]].tokenAddress
                 );
-                token.transferFrom(address(this), msg.sender, totalClaimed);
+                token.transfer(msg.sender, totalClaimed);
                 // reset ticket count of lottery id index i to 0
                 allAffiliate_[msg.sender][_listOfLotterryId[i]] = 0;
                 claimedLotteryIds[i] = _listOfLotterryId[i];
