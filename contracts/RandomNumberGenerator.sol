@@ -87,7 +87,6 @@ contract RandomNumberGenerator is VRFConsumerBaseV2 {
         allRandomInfo_[requestId].randomValue = randomValue;
         ILottery(lottery).fullfilWinningNumber(
             allRandomInfo_[requestId].lotteryId,
-            requestId,
             randomValue
         );
 
