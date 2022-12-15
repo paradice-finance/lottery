@@ -121,6 +121,10 @@ describe('RandomNumberGenerator', function () {
           .connect(owner)
           .fulfillRandomWords(reqId, randomNumberGenerator.address)
       ).to.emit(randomNumberGenerator, events.fulfillRandom);
+
+      const { randomValue } = await randomNumberGenerator.getRandomInfo(reqId);
+
+      await expect(randomValue).to.greaterThanOrEqual(0);
     });
   });
 });
