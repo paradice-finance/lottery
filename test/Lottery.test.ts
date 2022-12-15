@@ -347,35 +347,35 @@ describe('Lottery Contract', () => {
     });
     it('should revert when send invalid lotteryId', async () => {
       await expect(
-        lottery.connect(buyerWithAllowance).claimWinReward(0, 0)
+        lottery.connect(buyerWithAllowance).claimReward(0, 0)
       ).to.be.revertedWith(errors.invalid_lottery_id);
     });
     it('should revert when send invalid ticketId', async () => {
       await expect(
-        lottery.connect(buyerWithAllowance).claimWinReward(1, 0)
+        lottery.connect(buyerWithAllowance).claimReward(1, 0)
       ).to.be.revertedWith(errors.invalid_ticket_id);
     });
     it('should revert when lotto status is not "completed"', async () => {
       await lottery.connect(owner).createNewLotto();
       await expect(
-        lottery.connect(buyerWithAllowance).claimWinReward(2, 1)
+        lottery.connect(buyerWithAllowance).claimReward(2, 1)
       ).to.be.revertedWith(errors.invalid_claim_not_complete);
     });
     it('should revert when sender is not ticket owner', async () => {
-      await expect(
-        lottery.connect(buyer).claimWinReward(1, 1)
-      ).to.be.revertedWith(errors.invalid_ticket_owner);
+      await expect(lottery.connect(buyer).claimReward(1, 1)).to.be.revertedWith(
+        errors.invalid_ticket_owner
+      );
     });
     it('should revert when winner claim twice', async () => {
-      await lottery.connect(buyerWithAllowance).claimWinReward(1, 2);
+      await lottery.connect(buyerWithAllowance).claimReward(1, 2);
       await expect(
-        lottery.connect(buyerWithAllowance).claimWinReward(1, 2)
+        lottery.connect(buyerWithAllowance).claimReward(1, 2)
       ).to.be.revertedWith(errors.invalid_claim_twice);
     });
-    it('should emit event ClaimWinReward when success', async () => {
+    it('should emit event ClaimReward when success', async () => {
       await expect(
-        await lottery.connect(buyerWithAllowance).claimWinReward(1, 2)
-      ).to.emit(lottery, events.claimWinReward);
+        await lottery.connect(buyerWithAllowance).claimReward(1, 2)
+      ).to.emit(lottery, events.claimReward);
       assert.equal(
         await token.balanceOf(buyerWithAllowance.address),
         setup.balanceAfterClaimReward
@@ -442,25 +442,116 @@ describe('Lottery Contract', () => {
         lotteryBalanceAfterSecondClaim.value
       );
     });
-    it('should emit event ClaimedAffiliate when success', async () => {
+    it('should emit event ClaimAffiliate when success', async () => {
       await expect(await lottery.connect(seller).claimAffiliate([1])).to.emit(
         lottery,
-        events.claimedAffiliate
+        events.claimAffiliate
       );
       let balanceAfter = await token.balanceOf(seller.address);
       assert.equal(balanceAfter, setup.sellerBalanceAfterClaim);
     });
     it('should reset ticket count to zero when success', async () => {
-      await expect(await lottery.connect(seller).claimAffiliate([1])).to.emit(
-        lottery,
-        events.claimedAffiliate
-      );
+      await lottery.connect(seller).claimAffiliate([1]);
 
       const [_, ticketCount] = await lottery
         .connect(seller)
         .getAffiliateTicketQty([1]);
 
       assert.equal(ticketCount, 0);
+    });
+  });
+
+  describe('Get unclaimed treasury amount', async () => {
+    it('should revert when not owner', async () => {
+      await expect(
+        lottery.connect(buyer).getUnclaimedTreasuryAmount([1])
+      ).to.be.revertedWith(errors.invalid_admin);
+    });
+    it('should return correct amount when success', async () => {
+      await lottery.connect(owner).createNewLotto();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyLottoTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          seller.address,
+          true
+        );
+      await mockVRF
+        .connect(owner)
+        .fulfillRandomWords(1, randomNumberGenerator.address);
+      const [_, amount] = await lottery
+        .connect(owner)
+        .getUnclaimedTreasuryAmount([1]);
+      assert.equal(amount, setup.treasuryAmount);
+    });
+  });
+
+  describe('Claim Treasury', () => {
+    beforeEach(async () => {
+      await lottery.connect(owner).createNewLotto();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyLottoTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          seller.address,
+          true
+        );
+      await mockVRF
+        .connect(owner)
+        .fulfillRandomWords(1, randomNumberGenerator.address);
+    });
+    it('should revert when not owner', async () => {
+      await expect(
+        lottery.connect(buyer).claimTreasury([1])
+      ).to.be.revertedWith(errors.invalid_admin);
+    });
+    it('should revert when lotteryStatus is not Completed', async () => {
+      await lottery.connect(owner).createNewLotto();
+      await expect(
+        lottery.connect(owner).claimTreasury([2])
+      ).to.be.revertedWith(errors.invalid_claim_treasury_not_complete);
+    });
+    it('should not transfer when total claim is zero', async () => {
+      // first claim
+      await lottery.connect(owner).claimTreasury([1]);
+      let lotteryBalanceAfterFirstClaim = await token.balanceOf(
+        lottery.address
+      );
+      let ownerBalanceAfterFirstClaim = await token.balanceOf(owner.address);
+      // second claim
+      await lottery.connect(owner).claimTreasury([1]);
+      let lotteryBalanceAfterSecondClaim = await token.balanceOf(
+        lottery.address
+      );
+      let ownerBalanceAfterSecondClaim = await token.balanceOf(owner.address);
+
+      // lottery and owner should have same amount for before claimed and after claimed
+      assert.equal(
+        lotteryBalanceAfterFirstClaim.value,
+        lotteryBalanceAfterSecondClaim.value
+      );
+      assert.equal(
+        ownerBalanceAfterFirstClaim.value,
+        ownerBalanceAfterSecondClaim.value
+      );
+    });
+    it('should emit event ClaimTreasury when success', async () => {
+      await expect(await lottery.connect(owner).claimTreasury([1])).to.emit(
+        lottery,
+        events.claimTreasury
+      );
+      let balanceAfter = await token.balanceOf(owner.address);
+      assert.equal(balanceAfter, setup.ownerBalance + setup.treasuryAmount);
+    });
+    it('should reset ticket count to zero when success', async () => {
+      await lottery.connect(owner).claimTreasury([1]);
+
+      const [_, amount] = await lottery
+        .connect(owner)
+        .getUnclaimedTreasuryAmount([1]);
+      assert.equal(amount, 0);
     });
   });
 });
