@@ -117,15 +117,15 @@ contract Lottery is Ownable, Initializable {
         uint256 ticketCount
     );
 
-    event ClaimWinReward(
+    event ClaimReward(
         address winnerAddress,
         uint256 ticketId,
         uint256 lotteryId
     );
 
-    event ClaimedAffiliate(address affiliateAddress, uint256[] lotteryIds);
+    event ClaimAffiliate(address affiliateAddress, uint256[] lotteryIds);
 
-    event ClaimTreasuryAmount(address affiliateAddress, uint256[] lotteryIds);
+    event ClaimTreasury(address affiliateAddress, uint256[] lotteryIds);
 
     //-------------------------------------------------------------------------
     // MODIFIERS
@@ -268,6 +268,18 @@ contract Lottery is Ownable, Initializable {
             ticketCount[i] = allAffiliate_[msg.sender][_lotteryId[i]];
         }
         return (lotteryIds, ticketCount);
+    }
+
+    function getUnclaimedTreasuryAmount(
+        uint256[] memory _lotteryId
+    ) external view onlyOwner returns (uint256[] memory, uint256[] memory) {
+        uint256[] memory lotteryIds = new uint256[](_lotteryId.length);
+        uint256[] memory amounts = new uint256[](_lotteryId.length);
+        for (uint256 i = 0; i < _lotteryId.length; i++) {
+            lotteryIds[i] = _lotteryId[i];
+            amounts[i] = allTreasuryAmount_[_lotteryId[i]];
+        }
+        return (lotteryIds, amounts);
     }
 
     function createNewLotto() external onlyOwner returns (uint256) {
@@ -445,7 +457,7 @@ contract Lottery is Ownable, Initializable {
         );
     }
 
-    function claimWinReward(
+    function claimReward(
         uint256 _lotteryId,
         uint256 _ticketId
     ) external payable {
@@ -478,7 +490,7 @@ contract Lottery is Ownable, Initializable {
                 winnerRatio_) / 100
         );
 
-        emit ClaimWinReward(msg.sender, _ticketId, _lotteryId);
+        emit ClaimReward(msg.sender, _ticketId, _lotteryId);
     }
 
     /**
@@ -515,13 +527,13 @@ contract Lottery is Ownable, Initializable {
                 claimedLotteryIds[i] = _listOfLotterryId[i];
             }
         }
-        emit ClaimedAffiliate(msg.sender, claimedLotteryIds);
+        emit ClaimAffiliate(msg.sender, claimedLotteryIds);
     }
 
     /**
      * @param  _listOfLotterryId: all LotteryId that want to claim treasury amount
      */
-    function claimTreasuryAmount(
+    function claimTreasury(
         uint256[] calldata _listOfLotterryId
     ) external payable onlyOwner {
         uint256[] memory claimedLotteryIds = new uint256[](
@@ -541,7 +553,7 @@ contract Lottery is Ownable, Initializable {
                 uint256 treasuryAmount = allTreasuryAmount_[
                     _listOfLotterryId[i]
                 ];
-                token.transferFrom(address(this), msg.sender, treasuryAmount);
+                token.transfer(msg.sender, treasuryAmount);
                 // reset treasuryAmount of  lottery id index i to 0
                 allTreasuryAmount_[_listOfLotterryId[i]] = 0;
                 // reset ticket count of lottery id index i to 0
@@ -549,7 +561,7 @@ contract Lottery is Ownable, Initializable {
                 claimedLotteryIds[i] = _listOfLotterryId[i];
             }
         }
-        emit ClaimTreasuryAmount(msg.sender, claimedLotteryIds);
+        emit ClaimTreasury(msg.sender, claimedLotteryIds);
     }
 
     receive() external payable {}
