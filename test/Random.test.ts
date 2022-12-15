@@ -123,6 +123,34 @@ describe('RandomNumberGenerator', function () {
       ).to.emit(randomNumberGenerator, events.fulfillRandom);
 
       const { randomValue } = await randomNumberGenerator.getRandomInfo(reqId);
+    });
+  });
+
+  describe('GetRandomInfo', function () {
+    it('Should return RandomInfo when success.', async function () {
+      await lottery.connect(owner).createNewLotto();
+
+      let buy = await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyLottoTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          nullAddress,
+          false
+        );
+      let result: any = await buy.wait();
+
+      let reqId: any = result.events.filter(
+        (event: any) => event.event == events.requestWinningNumber
+      )[0].args[1];
+
+      await expect(
+        mockVRF
+          .connect(owner)
+          .fulfillRandomWords(reqId, randomNumberGenerator.address)
+      ).to.emit(randomNumberGenerator, events.fulfillRandom);
+
+      const { randomValue } = await randomNumberGenerator.getRandomInfo(reqId);
 
       await expect(randomValue).to.greaterThanOrEqual(0);
     });
