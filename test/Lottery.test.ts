@@ -21,6 +21,7 @@ describe('Lottery Contract', () => {
   let errors = lotto.errors;
   let events = lotto.events;
   let status = lotto.status;
+  let expectedResponse = lotto.expectedResponse;
 
   beforeEach(async () => {
     [owner, buyer, buyerWithAllowance, seller] = await ethers.getSigners();
@@ -273,7 +274,7 @@ describe('Lottery Contract', () => {
 
       assert.equal(
         await token.balanceOf(buyerWithAllowance.address),
-        setup.balanceAfterBuy
+        expectedResponse.balanceAfterBuy
       );
     });
   });
@@ -330,7 +331,7 @@ describe('Lottery Contract', () => {
     });
   });
 
-  describe('Claim win reward', () => {
+  describe('Claim reward', () => {
     beforeEach(async () => {
       await lottery.connect(owner).createNewLotto();
       await lottery
@@ -378,7 +379,7 @@ describe('Lottery Contract', () => {
       ).to.emit(lottery, events.claimReward);
       assert.equal(
         await token.balanceOf(buyerWithAllowance.address),
-        setup.balanceAfterClaimReward
+        expectedResponse.balanceAfterClaimReward
       );
     });
   });
@@ -448,7 +449,7 @@ describe('Lottery Contract', () => {
         events.claimAffiliate
       );
       let balanceAfter = await token.balanceOf(seller.address);
-      assert.equal(balanceAfter, setup.sellerBalanceAfterClaim);
+      assert.equal(balanceAfter, expectedResponse.sellerBalanceAfterClaim);
     });
     it('should reset ticket count to zero when success', async () => {
       await lottery.connect(seller).claimAffiliate([1]);
@@ -483,7 +484,7 @@ describe('Lottery Contract', () => {
       const [_, amount] = await lottery
         .connect(owner)
         .getUnclaimedTreasuryAmount([1]);
-      assert.equal(amount, setup.treasuryAmount);
+      assert.equal(amount, expectedResponse.treasuryAmount);
     });
   });
 
@@ -543,7 +544,10 @@ describe('Lottery Contract', () => {
         events.claimTreasury
       );
       let balanceAfter = await token.balanceOf(owner.address);
-      assert.equal(balanceAfter, setup.ownerBalance + setup.treasuryAmount);
+      assert.equal(
+        balanceAfter,
+        setup.ownerBalance + expectedResponse.treasuryAmount
+      );
     });
     it('should reset ticket count to zero when success', async () => {
       await lottery.connect(owner).claimTreasury([1]);
@@ -552,6 +556,109 @@ describe('Lottery Contract', () => {
         .connect(owner)
         .getUnclaimedTreasuryAmount([1]);
       assert.equal(amount, 0);
+    });
+  });
+
+  describe('Cost to buy tickets', () => {
+    beforeEach(async () => {
+      await lottery.connect(owner).createNewLotto();
+    });
+    it('should return correct cost when success', async () => {
+      let cost = await lottery
+        .connect(buyerWithAllowance)
+        .costToBuyTickets(1, 5);
+
+      assert.equal(cost, expectedResponse.costToBuyFiveTickets);
+    });
+  });
+
+  describe('Get current lottery', () => {
+    beforeEach(async () => {
+      await lottery.connect(owner).createNewLotto();
+    });
+    it('should return current lottery when success', async () => {
+      let lotteryId = await lottery
+        .connect(buyerWithAllowance)
+        .getCurrentLottery();
+      assert.equal(lotteryId, 1);
+    });
+  });
+
+  describe('Get owner of ticket', () => {
+    beforeEach(async () => {
+      await lottery.connect(owner).createNewLotto();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyLottoTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          seller.address,
+          true
+        );
+    });
+    it('should return ticket info when success', async () => {
+      let ownerOfTicketAddress = await lottery
+        .connect(buyerWithAllowance)
+        .getOwnerOfTicket(1);
+      assert.equal(ownerOfTicketAddress, buyerWithAllowance.address);
+    });
+  });
+
+  describe('Get ticket info', () => {
+    beforeEach(async () => {
+      await lottery.connect(owner).createNewLotto();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyLottoTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          seller.address,
+          true
+        );
+    });
+    it('should return ticket info when success', async () => {
+      let ticketInfo = await lottery.connect(owner).getTicketInfo(1);
+      assert.equal(ticketInfo.number, expectedResponse.ticketInfo.number);
+      assert.equal(ticketInfo.owner, expectedResponse.ticketInfo.owner);
+      assert.equal(ticketInfo.claimed, expectedResponse.ticketInfo.claimed);
+      assert.equal(ticketInfo.lotteryId, expectedResponse.ticketInfo.lotteryId);
+    });
+  });
+
+  describe('Get user ticket', () => {
+    beforeEach(async () => {
+      await lottery.connect(owner).createNewLotto();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyLottoTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          seller.address,
+          true
+        );
+    });
+    it('should return user tickets when success', async () => {
+      let tickets = await lottery
+        .connect(owner)
+        .getUserTickets(1, buyerWithAllowance.address);
+      tickets = tickets.map((x: any, i: any) =>
+        assert.equal(x.toNumber(), expectedResponse.ticketIds[i])
+      );
+    });
+  });
+
+  describe('Get Available ticket', () => {
+    beforeEach(async () => {
+      await lottery.connect(owner).createNewLotto();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyLottoTicket(1, [1], seller.address, true);
+    });
+    it('should return user tickets when success', async () => {
+      let availableTicket = await lottery
+        .connect(owner)
+        .getAvailableTicketQty();
+      assert.equal(availableTicket, 4);
     });
   });
 });

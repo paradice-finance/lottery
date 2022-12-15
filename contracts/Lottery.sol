@@ -254,7 +254,7 @@ contract Lottery is Ownable, Initializable {
         return userTickets_[_user][_lotteryId];
     }
 
-    function getAvaliableTicketQty() public view returns (uint256) {
+    function getAvailableTicketQty() public view returns (uint256) {
         return sizeOfLottery_ - currentTickets_.length;
     }
 
