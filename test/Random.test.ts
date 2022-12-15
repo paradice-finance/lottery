@@ -2,12 +2,11 @@ import { ethers } from 'hardhat';
 import { expect, use } from 'chai';
 import BN from 'bn.js';
 use(require('chai-bn')(BN));
-import { BigNumber } from 'ethers';
 
 require('dotenv').config({ path: '.env' });
 const { lotto } = require('./settings.ts');
 
-describe('RandomGenerator', function () {
+describe('RandomNumberGenerator', function () {
   let owner: any, buyer: any, buyerWithAllowance: any, C: any, treasury: any;
   let nullAddress = '0x0000000000000000000000000000000000000000';
   let allowance = 10000000000000000000000n;
@@ -93,7 +92,7 @@ describe('RandomGenerator', function () {
           .connect(buyerWithAllowance)
           .batchBuyLottoTicket(
             lotto.setup.sizeOfLotteryNumbers,
-            [1, 2, 3, 4, 5],
+            lotto.setup.chosenNumbersForEachTicket,
             nullAddress,
             false
           )
@@ -107,7 +106,12 @@ describe('RandomGenerator', function () {
 
       let buy = await lottery
         .connect(buyerWithAllowance)
-        .batchBuyLottoTicket(5, [1, 2, 3, 4, 5], nullAddress, false);
+        .batchBuyLottoTicket(
+          lotto.setup.sizeOfLotteryNumbers,
+          lotto.setup.chosenNumbersForEachTicket,
+          nullAddress,
+          false
+        );
       let result: any = await buy.wait();
 
       let reqId: any = result.events.filter(
