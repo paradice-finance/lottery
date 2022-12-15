@@ -8,7 +8,6 @@ import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
 import 'solidity-coverage';
 
-require('solidity-coverage');
 require('hardhat-ignore-warnings');
 // eslint-disable-next-line node/no-path-concat
 dotenv.config({ path: __dirname + '/.env' });

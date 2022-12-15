@@ -4,11 +4,7 @@ const { BigNumber } = require('@ethersproject/bignumber');
 const lotto = {
   setup: {
     balance: 10000000000000000000000n,
-    balanceAfterBuy: 9995000000000000000000n,
-    balanceAfterClaimReward: 9999750000000000000000n,
-    sellerBalanceAfterClaim: 50000000000000000n,
     ownerBalance: 90000000000000000000000n, // after send token to buyer
-    treasuryAmount: 200000000000000000n, // treasury amount the owner should receive after round 1 (5 tickets)
     sizeOfLotteryNumbers: 5,
     ticketPrice: 1,
     treasuryRatio: 4,
@@ -22,6 +18,20 @@ const lotto = {
         '0x79d3d8832d904592c0bf9818b621522c988bb8b0c05cdc3b15aea1b6e8db0c15',
       fee: ethers.utils.parseUnits('1', 19)
     }
+  },
+  expectedResponse: {
+    balanceAfterBuy: 9995000000000000000000n,
+    balanceAfterClaimReward: 9999750000000000000000n,
+    sellerBalanceAfterClaim: 50000000000000000n,
+    treasuryAmount: 200000000000000000n, // treasury amount the owner should receive after round 1 (5 tickets)
+    ticketInfo: {
+      number: 1,
+      owner: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
+      claimed: false,
+      lotteryId: 1
+    },
+    costToBuyFiveTickets: 5000000000000000000n,
+    ticketIds: [1, 2, 3, 4, 5]
   },
   events: {
     new: 'LotteryOpen',
