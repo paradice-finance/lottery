@@ -16,12 +16,9 @@ describe('Lottery Contract', () => {
   let randomNumberGenerator: any;
   let MockVRF: any;
   let mockVRF: any;
-  let nullAddress = '0x0000000000000000000000000000000000000000';
-  let setup = lotto.setup;
-  let errors = lotto.errors;
-  let events = lotto.events;
-  let status = lotto.status;
-  let expectedResponse = lotto.expectedResponse;
+
+  let { setup, events, errors, status, expectedResponse } = lotto;
+  let { nullAddress } = setup;
 
   beforeEach(async () => {
     [owner, buyer, buyerWithAllowance, seller] = await ethers.getSigners();

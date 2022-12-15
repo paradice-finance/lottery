@@ -10,7 +10,9 @@ const lotto = {
     treasuryRatio: 4,
     affiliateRatio: 1,
     winnerRatio: 95,
-    chosenNumbersForEachTicket: [1, 2, 3, 4, 5]
+    chosenNumbersForEachTicket: [1, 2, 3, 4, 5],
+    nullAddress: '0x0000000000000000000000000000000000000000',
+    allowance: 10000000000000000000000n
   },
   chainLink: {
     goerli: {
