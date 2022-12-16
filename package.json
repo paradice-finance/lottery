@@ -2,6 +2,7 @@
   "name": "lottery",
   "version": "1.0.0",
   "description": "",
+  "prettier": "./prettierrc.json",
   "main": "index.js",
   "scripts": {
     "compile": "npx hardhat compile",
