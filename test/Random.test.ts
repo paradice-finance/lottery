@@ -8,8 +8,7 @@ const { lotto } = require('./settings.ts');
 
 describe('RandomNumberGenerator', function () {
   let owner: any, buyer: any, buyerWithAllowance: any, C: any, treasury: any;
-  let nullAddress = '0x0000000000000000000000000000000000000000';
-  let allowance = 10000000000000000000000n;
+
   let Token;
   let token: any;
   let Lottery;
@@ -19,9 +18,8 @@ describe('RandomNumberGenerator', function () {
   let RandomNumberGenerator;
   let randomNumberGenerator: any;
   let subId: any;
-  let events = lotto.events;
-  let errors = lotto.errors;
-
+  let { setup, events, errors, chainLink } = lotto;
+  let { nullAddress, allowance } = setup;
   beforeEach(async () => {
     [owner, buyer, buyerWithAllowance, C, treasury] = await ethers.getSigners();
 
@@ -31,12 +29,12 @@ describe('RandomNumberGenerator', function () {
     Lottery = await ethers.getContractFactory('Lottery');
     lottery = await Lottery.deploy(
       token.address,
-      lotto.setup.sizeOfLotteryNumbers,
-      lotto.setup.ticketPrice,
+      setup.sizeOfLotteryNumbers,
+      setup.ticketPrice,
       owner.address,
-      lotto.setup.treasuryRatio,
-      lotto.setup.affiliateRatio,
-      lotto.setup.winnerRatio
+      setup.treasuryRatio,
+      setup.affiliateRatio,
+      setup.winnerRatio
     );
 
     await lottery.deployed();
@@ -64,7 +62,7 @@ describe('RandomNumberGenerator', function () {
       subId,
       lottery.address,
       mockVRF.address,
-      lotto.chainLink.goerli.keyHash
+      chainLink.goerli.keyHash
     );
 
     await randomNumberGenerator.deployed();
@@ -91,8 +89,8 @@ describe('RandomNumberGenerator', function () {
         await lottery
           .connect(buyerWithAllowance)
           .batchBuyLottoTicket(
-            lotto.setup.sizeOfLotteryNumbers,
-            lotto.setup.chosenNumbersForEachTicket,
+            setup.sizeOfLotteryNumbers,
+            setup.chosenNumbersForEachTicket,
             nullAddress,
             false
           )
@@ -107,8 +105,8 @@ describe('RandomNumberGenerator', function () {
       let buy = await lottery
         .connect(buyerWithAllowance)
         .batchBuyLottoTicket(
-          lotto.setup.sizeOfLotteryNumbers,
-          lotto.setup.chosenNumbersForEachTicket,
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
           nullAddress,
           false
         );
@@ -123,6 +121,38 @@ describe('RandomNumberGenerator', function () {
           .connect(owner)
           .fulfillRandomWords(reqId, randomNumberGenerator.address)
       ).to.emit(randomNumberGenerator, events.fulfillRandom);
+
+      const { randomValue } = await randomNumberGenerator.getRandomInfo(reqId);
+    });
+  });
+
+  describe('GetRandomInfo', function () {
+    it('Should return RandomInfo when success.', async function () {
+      await lottery.connect(owner).createNewLotto();
+
+      let buy = await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyLottoTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          nullAddress,
+          false
+        );
+      let result: any = await buy.wait();
+
+      let reqId: any = result.events.filter(
+        (event: any) => event.event == events.requestWinningNumber
+      )[0].args[1];
+
+      await expect(
+        mockVRF
+          .connect(owner)
+          .fulfillRandomWords(reqId, randomNumberGenerator.address)
+      ).to.emit(randomNumberGenerator, events.fulfillRandom);
+
+      const { randomValue } = await randomNumberGenerator.getRandomInfo(reqId);
+
+      await expect(randomValue).to.greaterThanOrEqual(0);
     });
   });
 });
