@@ -35,7 +35,7 @@ contract Lottery is Ownable, Initializable {
     // all ticket in current round
     uint256[] private currentTickets_;
     // all affiliate in current round
-    uint32 private sizeOfAffiliate_;
+    uint256 private sizeOfAffiliate_;
 
     // Represents the status of the lottery
     enum Status {
