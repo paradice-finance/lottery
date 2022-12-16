@@ -2,6 +2,7 @@
   "name": "lottery",
   "version": "1.0.0",
   "description": "",
+  "prettier": "./prettierrc.json",
   "main": "index.js",
   "scripts": {
     "compile": "npx hardhat compile",
@@ -9,8 +10,7 @@
     "test:lottery": "npx hardhat test ./test/Lottery.test.ts",
     "test:random": "npx hardhat test ./test/Random.test.ts",
     "coverage": "npx hardhat coverage",
-    "deploy:test": "npx hardhat run --network goerli deploy-test.ts",
-    "format": "prettier --config prettierrc.json --write ."
+    "deploy:test": "npx hardhat run --network goerli deploy-test.ts"
   },
   "repository": {
     "type": "git",
