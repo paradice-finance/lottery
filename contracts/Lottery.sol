@@ -44,24 +44,24 @@ contract Lottery is Ownable, Initializable {
         Completed // The lottery has been closed and the numbers drawn
     }
 
-    // All the needed info around a lottery
-    struct LottoInfo {
-        uint256 lotteryID; // ID for lotto
+    // All the needed info for lottery
+    struct LotteryInfo {
+        uint256 lotteryId; // ID for lotto
         Status lotteryStatus; // Status for lotto
         address tokenAddress; // $token in current round
         uint8 sizeOfLottery; // Show how many tickets there are in one prize round
         uint256 ticketPrice; // Cost per ticket in $token
         uint256 winningTicketId; // Winning ticketId of current lotto
-        PrizeDistribution prizeDistribution; // The distribution of pool
+        PrizeDistributionRatio prizeDistributionRatio; // The distribution of pool
     }
 
-    struct PrizeDistribution {
-        uint8 winnerRatio;
-        uint8 treasuryRatio;
-        uint8 affiliateRatio;
+    struct PrizeDistributionRatio {
+        uint8 winner;
+        uint8 treasury;
+        uint8 affiliate;
     }
 
-    struct TicketInfo {
+    struct Ticket {
         uint256 number;
         address owner;
         bool claimed;
@@ -69,9 +69,9 @@ contract Lottery is Ownable, Initializable {
     }
 
     // Lottery ID's to info
-    mapping(uint256 => LottoInfo) internal allLotteries_;
+    mapping(uint256 => LotteryInfo) internal allLotteries_;
     // Ticket ID's to info
-    mapping(uint256 => TicketInfo) internal allTickets_;
+    mapping(uint256 => Ticket) internal allTickets_;
     // User address => Lottery ID => Ticket IDs
     mapping(address => mapping(uint256 => uint256[])) internal userTickets_;
     // Affiliate address => Lottery ID => Ticket Count
@@ -86,7 +86,7 @@ contract Lottery is Ownable, Initializable {
     event NewBatchBuy(
         address indexed minter,
         uint256 lotteryId,
-        uint256[] ticketIDs,
+        uint256[] ticketIds,
         uint256 totalCost
     );
 
@@ -173,7 +173,7 @@ contract Lottery is Ownable, Initializable {
         token_ = IERC20(_token);
         treasuryAddress_ = _treasuryAddress;
         sizeOfLottery_ = _sizeOfLotteryNumbers;
-        ticketPrice_ = _ticketPrice * 10 ** 18;
+        ticketPrice_ = _ticketPrice;
         ticketIdCounter_ = 1;
         lotteryIdCounter_ = 0;
 
@@ -181,21 +181,22 @@ contract Lottery is Ownable, Initializable {
         treasuryRatio_ = _treasuryRatio;
         affiliateRatio_ = _affiliateRatio;
 
-        PrizeDistribution memory prizeDistribution = PrizeDistribution(
-            winnerRatio_,
-            treasuryRatio_,
-            affiliateRatio_
-        );
+        PrizeDistributionRatio
+            memory prizeDistributionRatio = PrizeDistributionRatio(
+                winnerRatio_,
+                treasuryRatio_,
+                affiliateRatio_
+            );
 
         // init first lotto
-        LottoInfo memory newLottery = LottoInfo(
+        LotteryInfo memory newLottery = LotteryInfo(
             lotteryIdCounter_,
             Status.Completed,
             address(token_),
             sizeOfLottery_,
             ticketPrice_,
             0,
-            prizeDistribution
+            prizeDistributionRatio
         );
 
         allLotteries_[lotteryIdCounter_] = newLottery;
@@ -225,28 +226,31 @@ contract Lottery is Ownable, Initializable {
         return lotteryIdCounter_;
     }
 
-    function getBasicLottoInfo(
+    // get lottery information
+    function getLottery(
         uint256 _lotteryId
-    ) external view returns (LottoInfo memory) {
+    ) external view returns (LotteryInfo memory) {
         return (allLotteries_[_lotteryId]);
     }
 
     /**
-     * @param   _ticketID: The unique ID of the ticket
+     * @param   _ticketId: The unique ID of the ticket
      * @return  address: Owner of ticket
      */
     function getOwnerOfTicket(
-        uint256 _ticketID
+        uint256 _ticketId
     ) external view returns (address) {
-        return allTickets_[_ticketID].owner;
+        return allTickets_[_ticketId].owner;
     }
 
-    function getTicketInfo(
-        uint256 _ticketID
-    ) external view returns (TicketInfo memory) {
-        return allTickets_[_ticketID];
+    // get ticket information
+    function getTicket(
+        uint256 _ticketId
+    ) external view returns (Ticket memory) {
+        return allTickets_[_ticketId];
     }
 
+    // get ticket information for a specific user
     function getUserTickets(
         uint256 _lotteryId,
         address _user
@@ -254,10 +258,12 @@ contract Lottery is Ownable, Initializable {
         return userTickets_[_user][_lotteryId];
     }
 
+    // check available tickets for current round
     function getAvailableTicketQty() public view returns (uint256) {
         return sizeOfLottery_ - currentTickets_.length;
     }
 
+    // get quantity of tickets that are available for claim affiliate
     function getAffiliateTicketQty(
         uint256[] memory _lotteryId
     ) external view returns (uint256[] memory, uint256[] memory) {
@@ -270,7 +276,8 @@ contract Lottery is Ownable, Initializable {
         return (lotteryIds, ticketCount);
     }
 
-    function getUnclaimedTreasuryAmount(
+    // get amount of token that owner can claim for specific lotteryId
+    function getUnclaimedTreasuryQty(
         uint256[] memory _lotteryId
     ) external view onlyOwner returns (uint256[] memory, uint256[] memory) {
         uint256[] memory lotteryIds = new uint256[](_lotteryId.length);
@@ -282,7 +289,7 @@ contract Lottery is Ownable, Initializable {
         return (lotteryIds, amounts);
     }
 
-    function createNewLotto() external onlyOwner returns (uint256) {
+    function createNewLottery() external onlyOwner returns (uint256) {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Completed,
             "Cannot be created if the current lotto are not finished."
@@ -293,30 +300,31 @@ contract Lottery is Ownable, Initializable {
         // Incrementing lottery ID
         lotteryIdCounter_ += 1;
 
-        PrizeDistribution memory prizeDistribution = PrizeDistribution(
-            winnerRatio_,
-            treasuryRatio_,
-            affiliateRatio_
-        );
+        PrizeDistributionRatio
+            memory prizeDistributionRatio = PrizeDistributionRatio(
+                winnerRatio_,
+                treasuryRatio_,
+                affiliateRatio_
+            );
 
         // Saving data in struct
-        LottoInfo memory newLottery = LottoInfo(
+        LotteryInfo memory lottery = LotteryInfo(
             lotteryIdCounter_,
             Status.Open,
             address(token_),
             sizeOfLottery_,
             ticketPrice_,
             0,
-            prizeDistribution
+            prizeDistributionRatio
         );
 
-        allLotteries_[lotteryIdCounter_] = newLottery;
+        allLotteries_[lotteryIdCounter_] = lottery;
         // Emitting important information around new lottery.
         emit LotteryOpen(lotteryIdCounter_);
         return lotteryIdCounter_;
     }
 
-    function configNewLotto(
+    function configNewLottery(
         address _token,
         uint8 _sizeOfLottery,
         uint256 _ticketPrice,
@@ -364,7 +372,7 @@ contract Lottery is Ownable, Initializable {
      * @param  _affiliateAddress: will be use when _isAffiliate == true
      * @param  _isAffiliate: ticket buy with aff or not
      */
-    function batchBuyLottoTicket(
+    function batchBuyTicket(
         uint8 _ticketQty,
         uint16[] calldata _chosenNumbersForEachTicket,
         address payable _affiliateAddress,
@@ -394,7 +402,7 @@ contract Lottery is Ownable, Initializable {
             currentTickets_.push(ticketIdCounter_);
             // Storing the ticket information
             ticketIds[i] = ticketIdCounter_;
-            allTickets_[ticketIdCounter_] = TicketInfo(
+            allTickets_[ticketIdCounter_] = Ticket(
                 _chosenNumbersForEachTicket[i],
                 msg.sender,
                 false,
@@ -430,6 +438,9 @@ contract Lottery is Ownable, Initializable {
         }
     }
 
+    /**
+     * @param  _randomIndex: the index of winner's ticket
+     */
     function fullfilWinningNumber(
         uint256 _lotteryId,
         uint256 _randomIndex
@@ -457,11 +468,12 @@ contract Lottery is Ownable, Initializable {
         );
     }
 
+    // For player to claim reward
     function claimReward(
         uint256 _lotteryId,
         uint256 _ticketId
     ) external payable {
-        require(allLotteries_[_lotteryId].lotteryID != 0, "Invalid lotteryId.");
+        require(allLotteries_[_lotteryId].lotteryId != 0, "Invalid lotteryId.");
 
         require(allTickets_[_ticketId].number != 0, "Invalid ticketId.");
 
@@ -514,8 +526,8 @@ contract Lottery is Ownable, Initializable {
                 _listOfLotterryId[i]
             ] * allLotteries_[_listOfLotterryId[i]].ticketPrice) *
                 allLotteries_[_listOfLotterryId[i]]
-                    .prizeDistribution
-                    .affiliateRatio) / 100;
+                    .prizeDistributionRatio
+                    .affiliate) / 100;
 
             if (totalClaimed > 0) {
                 IERC20 token = IERC20(
@@ -531,7 +543,7 @@ contract Lottery is Ownable, Initializable {
     }
 
     /**
-     * @param  _listOfLotterryId: all LotteryId that want to claim treasury amount
+     * @param  _listOfLotterryId: all LotteryId that want to claim token
      */
     function claimTreasury(
         uint256[] calldata _listOfLotterryId
