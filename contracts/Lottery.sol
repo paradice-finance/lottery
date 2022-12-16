@@ -46,7 +46,7 @@ contract Lottery is Ownable, Initializable {
 
     // All the needed info for lottery
     struct LotteryInfo {
-        uint256 lotteryID; // ID for lotto
+        uint256 lotteryId; // ID for lotto
         Status lotteryStatus; // Status for lotto
         address tokenAddress; // $token in current round
         uint8 sizeOfLottery; // Show how many tickets there are in one prize round
@@ -86,7 +86,7 @@ contract Lottery is Ownable, Initializable {
     event NewBatchBuy(
         address indexed minter,
         uint256 lotteryId,
-        uint256[] ticketIDs,
+        uint256[] ticketIds,
         uint256 totalCost
     );
 
@@ -234,20 +234,20 @@ contract Lottery is Ownable, Initializable {
     }
 
     /**
-     * @param   _ticketID: The unique ID of the ticket
+     * @param   _ticketId: The unique ID of the ticket
      * @return  address: Owner of ticket
      */
     function getOwnerOfTicket(
-        uint256 _ticketID
+        uint256 _ticketId
     ) external view returns (address) {
-        return allTickets_[_ticketID].owner;
+        return allTickets_[_ticketId].owner;
     }
 
     // get ticket information
     function getTicket(
-        uint256 _ticketID
+        uint256 _ticketId
     ) external view returns (Ticket memory) {
-        return allTickets_[_ticketID];
+        return allTickets_[_ticketId];
     }
 
     // get ticket information for a specific user
@@ -473,7 +473,7 @@ contract Lottery is Ownable, Initializable {
         uint256 _lotteryId,
         uint256 _ticketId
     ) external payable {
-        require(allLotteries_[_lotteryId].lotteryID != 0, "Invalid lotteryId.");
+        require(allLotteries_[_lotteryId].lotteryId != 0, "Invalid lotteryId.");
 
         require(allTickets_[_ticketId].number != 0, "Invalid ticketId.");
 
