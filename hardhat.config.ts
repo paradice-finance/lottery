@@ -61,7 +61,8 @@ const config = {
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.MUMBAI_POLYGONSCAN_API_KEY || '',
-      rinkeby: process.env.ETHEREUM_ETHERSCAN_API_KEY || ''
+      rinkeby: process.env.ETHEREUM_ETHERSCAN_API_KEY || '',
+      goerli: process.env.ETHEREUM_ETHERSCAN_API_KEY || ''
     }
   }
 };

@@ -1,10 +1,11 @@
 import { ethers } from 'hardhat';
 
-const { SUBSCRIPTION_ID, GOERLI_LINK_KEY_HASH } = process.env;
+const { SUBSCRIPTION_ID, GOERLI_LINK_KEY_HASH, GOERLI_VRF_COORDINATOR } =
+  process.env;
 async function main() {
-  const MockToken = await ethers.getContractFactory('MockToken');
+  const MockToken = await ethers.getContractFactory('Mock_erc20');
 
-  const token = await MockToken.deploy();
+  const token = await MockToken.deploy(10000);
   try {
     await token.deployed();
     console.log('Token address:', token.address);
@@ -16,7 +17,7 @@ async function main() {
 
   const lottery = await Lottery.deploy(
     token.address, //_token
-    20, // _sizeOfLotteryNumbers
+    5, // _sizeOfLotteryNumbers
     1, // _ticketPrice
     process.env.TREASURY_ADDRESS!!, // _treasuryAddress
     4, // _treasuryRatio
@@ -32,12 +33,13 @@ async function main() {
   }
 
   const RandomNumberGenerator = await ethers.getContractFactory(
-    'MockRandomNumberGenerator'
+    'RandomNumberGenerator'
   );
 
   const randomNumberGenerator = await RandomNumberGenerator.deploy(
     SUBSCRIPTION_ID!!,
     lottery.address,
+    GOERLI_VRF_COORDINATOR!!,
     GOERLI_LINK_KEY_HASH!!
   );
 
