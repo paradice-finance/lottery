@@ -18,7 +18,7 @@ async function main() {
   const lottery = await Lottery.deploy(
     token.address, //_token
     5, // _sizeOfLotteryNumbers
-    1, // _ticketPrice
+    1000000000000000000n, // _ticketPrice
     process.env.TREASURY_ADDRESS!!, // _treasuryAddress
     4, // _treasuryRatio
     1, // _affiliateRatio
