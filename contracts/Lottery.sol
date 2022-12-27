@@ -24,7 +24,7 @@ contract Lottery is Ownable, Initializable {
     uint256 private ticketIdCounter_;
     // Lottery size
     uint8 private sizeOfLottery_;
-    // length of chosen number
+    // maximum number of chosen number
     uint32 private maximumChosenNumber_;
     // ticket price
     uint256 private ticketPrice_;
@@ -52,7 +52,7 @@ contract Lottery is Ownable, Initializable {
         Status lotteryStatus; // Status for lotto
         address tokenAddress; // $token in current round
         uint8 sizeOfLottery; // Show how many tickets there are in one prize round
-        uint32 maximumChosenNumber; // length of chosen number
+        uint32 maximumChosenNumber; //  maximum number of chosen number
         uint256 ticketPrice; // Cost per ticket in $token
         uint256 winningTicketId; // Winning ticketId of current lotto
         PrizeDistributionRatio prizeDistributionRatio; // The distribution of pool
