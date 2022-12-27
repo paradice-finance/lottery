@@ -6,7 +6,7 @@ const lotto = {
     balance: 10000000000000000000000n,
     ownerBalance: 90000000000000000000000n, // after send token to buyer
     sizeOfLotteryNumbers: 5,
-    maximumChosenNumber: 1000000,
+    maximumChosenNumber: 999999,
     ticketPrice: 1000000000000000000n,
     treasuryRatio: 4,
     affiliateRatio: 1,

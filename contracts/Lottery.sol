@@ -407,7 +407,7 @@ contract Lottery is Ownable, Initializable {
         uint256[] memory ticketIds = new uint256[](_ticketQty);
         for (uint8 i = 0; i < _ticketQty; i++) {
             require(
-                _chosenNumbersForEachTicket[i] < maximumChosenNumber_,
+                _chosenNumbersForEachTicket[i] <= maximumChosenNumber_,
                 "Chosen number out of range"
             );
             currentTickets_.push(ticketIdCounter_);
