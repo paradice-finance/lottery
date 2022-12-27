@@ -153,7 +153,7 @@ describe('Random number generator', function () {
 
       const { randomValue } = await randomNumberGenerator.getRandomInfo(reqId);
 
-      expect(randomValue).to.greaterThanOrEqual(0);
+      expect(Number(randomValue)).to.greaterThanOrEqual(0);
     });
   });
 });
