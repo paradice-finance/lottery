@@ -178,14 +178,13 @@ contract Lottery is Ownable, Initializable {
         token_ = IERC20(_token);
         treasuryAddress_ = _treasuryAddress;
         sizeOfLottery_ = _sizeOfLotteryNumbers;
+        maximumChosenNumber_ = _maximumChosenNumber;
         ticketPrice_ = _ticketPrice;
         ticketIdCounter_ = 1;
         lotteryIdCounter_ = 0;
-
         winnerRatio_ = _winnerRatio;
         treasuryRatio_ = _treasuryRatio;
         affiliateRatio_ = _affiliateRatio;
-        maximumChosenNumber_ = _maximumChosenNumber;
 
         PrizeDistributionRatio
             memory prizeDistributionRatio = PrizeDistributionRatio(
