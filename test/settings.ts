@@ -6,6 +6,7 @@ const lotto = {
     balance: 10000000000000000000000n,
     ownerBalance: 90000000000000000000000n, // after send token to buyer
     sizeOfLotteryNumbers: 5,
+    maximumChosenNumber: 999999,
     ticketPrice: 1000000000000000000n,
     treasuryRatio: 4,
     affiliateRatio: 1,
@@ -64,6 +65,7 @@ const lotto = {
     invalid_buy_to_large: 'Batch buy too large',
     invalid_buy_chosen_number:
       'The quantity of the _chosenNumbersForEachTicket is not equal with _ticketQty',
+    invalid_buy_chosen_number_length: 'Chosen number out of range',
     invalid_buy_approve: 'ERC20: insufficient allowance',
     invalid_random_generator: 'Only random generator',
     invalid_lottery_id: 'Invalid lotteryId.',

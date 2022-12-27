@@ -6,7 +6,7 @@ use(require('chai-bn')(BN));
 require('dotenv').config({ path: '.env' });
 const { lotto } = require('./settings.ts');
 
-describe('RandomNumberGenerator', function () {
+describe('Random number generator', function () {
   let owner: any, buyer: any, buyerWithAllowance: any, C: any, treasury: any;
 
   let Token;
@@ -30,6 +30,7 @@ describe('RandomNumberGenerator', function () {
     lottery = await Lottery.deploy(
       token.address,
       setup.sizeOfLotteryNumbers,
+      setup.maximumChosenNumber,
       setup.ticketPrice,
       owner.address,
       setup.treasuryRatio,
@@ -75,7 +76,7 @@ describe('RandomNumberGenerator', function () {
     await lottery.initialize(randomNumberGenerator.address);
   });
 
-  describe('RequestRandomNumber', function () {
+  describe('Request random number', function () {
     it('Should revert when not called by Lottery address.', async function () {
       await expect(
         randomNumberGenerator.connect(owner).requestRandomNumber(1, 1)
@@ -83,12 +84,12 @@ describe('RandomNumberGenerator', function () {
     });
 
     it('Should emit event RequestRandomNumber when success.', async function () {
-      await lottery.connect(owner).createNewLotto();
+      await lottery.connect(owner).createNewLottery();
 
       await expect(
         await lottery
           .connect(buyerWithAllowance)
-          .batchBuyLottoTicket(
+          .batchBuyTicket(
             setup.sizeOfLotteryNumbers,
             setup.chosenNumbersForEachTicket,
             nullAddress,
@@ -98,13 +99,13 @@ describe('RandomNumberGenerator', function () {
     });
   });
 
-  describe('FulfillRandomWords', function () {
+  describe('Fulfill random words', function () {
     it('Should emit event RandomWordsFulfilled when success.', async function () {
-      await lottery.connect(owner).createNewLotto();
+      await lottery.connect(owner).createNewLottery();
 
       let buy = await lottery
         .connect(buyerWithAllowance)
-        .batchBuyLottoTicket(
+        .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
           nullAddress,
@@ -126,13 +127,13 @@ describe('RandomNumberGenerator', function () {
     });
   });
 
-  describe('GetRandomInfo', function () {
+  describe('Get random info', function () {
     it('Should return RandomInfo when success.', async function () {
-      await lottery.connect(owner).createNewLotto();
+      await lottery.connect(owner).createNewLottery();
 
       let buy = await lottery
         .connect(buyerWithAllowance)
-        .batchBuyLottoTicket(
+        .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
           nullAddress,
@@ -152,7 +153,7 @@ describe('RandomNumberGenerator', function () {
 
       const { randomValue } = await randomNumberGenerator.getRandomInfo(reqId);
 
-      await expect(randomValue).to.greaterThanOrEqual(0);
+      expect(Number(randomValue)).to.greaterThanOrEqual(0);
     });
   });
 });
