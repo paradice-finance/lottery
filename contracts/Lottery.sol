@@ -24,6 +24,8 @@ contract Lottery is Ownable, Initializable {
     uint256 private ticketIdCounter_;
     // Lottery size
     uint8 private sizeOfLottery_;
+    // length of chosen number
+    uint32 private maximumChosenNumber_;
     // ticket price
     uint256 private ticketPrice_;
     // winner percentage
@@ -50,6 +52,7 @@ contract Lottery is Ownable, Initializable {
         Status lotteryStatus; // Status for lotto
         address tokenAddress; // $token in current round
         uint8 sizeOfLottery; // Show how many tickets there are in one prize round
+        uint32 maximumChosenNumber; // length of chosen number
         uint256 ticketPrice; // Cost per ticket in $token
         uint256 winningTicketId; // Winning ticketId of current lotto
         PrizeDistributionRatio prizeDistributionRatio; // The distribution of pool
@@ -101,6 +104,7 @@ contract Lottery is Ownable, Initializable {
     event ConfigLottery(
         address token,
         uint8 sizeOfLottery,
+        uint32 maximumChosenNumber,
         uint256 ticketPrice,
         uint8 winnerRatio,
         uint8 treasuryRatio,
@@ -152,6 +156,7 @@ contract Lottery is Ownable, Initializable {
     constructor(
         address _token,
         uint8 _sizeOfLotteryNumbers,
+        uint32 _maximumChosenNumber,
         uint256 _ticketPrice,
         address _treasuryAddress,
         uint8 _treasuryRatio,
@@ -180,6 +185,7 @@ contract Lottery is Ownable, Initializable {
         winnerRatio_ = _winnerRatio;
         treasuryRatio_ = _treasuryRatio;
         affiliateRatio_ = _affiliateRatio;
+        maximumChosenNumber_ = _maximumChosenNumber;
 
         PrizeDistributionRatio
             memory prizeDistributionRatio = PrizeDistributionRatio(
@@ -194,6 +200,7 @@ contract Lottery is Ownable, Initializable {
             Status.Completed,
             address(token_),
             sizeOfLottery_,
+            maximumChosenNumber_,
             ticketPrice_,
             0,
             prizeDistributionRatio
@@ -313,6 +320,7 @@ contract Lottery is Ownable, Initializable {
             Status.Open,
             address(token_),
             sizeOfLottery_,
+            maximumChosenNumber_,
             ticketPrice_,
             0,
             prizeDistributionRatio
@@ -327,6 +335,7 @@ contract Lottery is Ownable, Initializable {
     function configNewLottery(
         address _token,
         uint8 _sizeOfLottery,
+        uint32 _maximumChosenNumber,
         uint256 _ticketPrice,
         uint8 _winnerRatio,
         uint8 _treasuryRatio,
@@ -355,10 +364,12 @@ contract Lottery is Ownable, Initializable {
         winnerRatio_ = _winnerRatio;
         treasuryRatio_ = _treasuryRatio;
         affiliateRatio_ = _affiliateRatio;
+        maximumChosenNumber_ = _maximumChosenNumber;
 
         emit ConfigLottery(
             _token,
             sizeOfLottery_,
+            maximumChosenNumber_,
             ticketPrice_,
             winnerRatio_,
             treasuryRatio_,
@@ -374,7 +385,7 @@ contract Lottery is Ownable, Initializable {
      */
     function batchBuyTicket(
         uint8 _ticketQty,
-        uint16[] calldata _chosenNumbersForEachTicket,
+        uint32[] calldata _chosenNumbersForEachTicket,
         address payable _affiliateAddress,
         bool _isAffiliate
     ) external payable notContract {
@@ -393,12 +404,13 @@ contract Lottery is Ownable, Initializable {
             "The quantity of the _chosenNumbersForEachTicket is not equal with _ticketQty"
         );
 
-        uint256 totalCost = ticketPrice_ * _ticketQty;
-        // Transfers the required token to this contract
-        token_.transferFrom(msg.sender, address(this), totalCost);
         // Batch mints the user their tickets
         uint256[] memory ticketIds = new uint256[](_ticketQty);
         for (uint8 i = 0; i < _ticketQty; i++) {
+            require(
+                _chosenNumbersForEachTicket[i] < maximumChosenNumber_,
+                "Chosen number out of range"
+            );
             currentTickets_.push(ticketIdCounter_);
             // Storing the ticket information
             ticketIds[i] = ticketIdCounter_;
@@ -423,6 +435,9 @@ contract Lottery is Ownable, Initializable {
                 );
             }
         }
+        uint256 totalCost = ticketPrice_ * _ticketQty;
+        // Transfers the required token to this contract
+        token_.transferFrom(msg.sender, address(this), totalCost);
 
         // Emitting batch buy ticket with all information
         emit NewBatchBuy(msg.sender, lotteryIdCounter_, ticketIds, msg.value);

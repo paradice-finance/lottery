@@ -33,6 +33,7 @@ describe('Lottery Contract', () => {
     lottery = await Lottery.deploy(
       token.address,
       setup.sizeOfLotteryNumbers,
+      setup.maximumChosenNumber,
       setup.ticketPrice,
       owner.address,
       setup.treasuryRatio,
@@ -113,6 +114,7 @@ describe('Lottery Contract', () => {
           .configNewLottery(
             token.address,
             setup.sizeOfLotteryNumbers,
+            setup.maximumChosenNumber,
             setup.ticketPrice,
             setup.winnerRatio,
             setup.treasuryRatio,
@@ -128,6 +130,7 @@ describe('Lottery Contract', () => {
           .configNewLottery(
             token.address,
             setup.sizeOfLotteryNumbers,
+            setup.maximumChosenNumber,
             setup.ticketPrice,
             setup.winnerRatio,
             setup.treasuryRatio,
@@ -144,6 +147,7 @@ describe('Lottery Contract', () => {
           .configNewLottery(
             nullAddress,
             setup.sizeOfLotteryNumbers,
+            setup.maximumChosenNumber,
             setup.ticketPrice,
             setup.winnerRatio,
             setup.treasuryRatio,
@@ -158,6 +162,7 @@ describe('Lottery Contract', () => {
           .configNewLottery(
             token.address,
             0,
+            setup.maximumChosenNumber,
             setup.ticketPrice,
             setup.winnerRatio,
             setup.treasuryRatio,
@@ -172,6 +177,7 @@ describe('Lottery Contract', () => {
           .configNewLottery(
             token.address,
             setup.sizeOfLotteryNumbers,
+            setup.maximumChosenNumber,
             0,
             setup.winnerRatio,
             setup.treasuryRatio,
@@ -186,6 +192,7 @@ describe('Lottery Contract', () => {
           .configNewLottery(
             token.address,
             setup.sizeOfLotteryNumbers,
+            setup.maximumChosenNumber,
             setup.ticketPrice,
             setup.winnerRatio + 1,
             setup.treasuryRatio,
@@ -200,6 +207,7 @@ describe('Lottery Contract', () => {
           .configNewLottery(
             token.address,
             setup.sizeOfLotteryNumbers,
+            setup.maximumChosenNumber,
             setup.ticketPrice,
             setup.winnerRatio,
             setup.treasuryRatio,
@@ -233,6 +241,14 @@ describe('Lottery Contract', () => {
       await expect(
         lottery.connect(buyer).batchBuyTicket(3, [1, 2], nullAddress, false)
       ).to.be.revertedWith(errors.invalid_buy_chosen_number);
+    });
+    it('should revert when chosen number out of range', async () => {
+      await lottery.connect(owner).createNewLottery();
+      await expect(
+        lottery
+          .connect(buyer)
+          .batchBuyTicket(3, [1, 2, 100000000], nullAddress, false)
+      ).to.be.revertedWith(errors.invalid_buy_chosen_number_length);
     });
     it("should revert when buyer don't have enough token for transfer", async () => {
       await lottery.connect(owner).createNewLottery();
