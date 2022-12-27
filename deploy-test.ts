@@ -18,7 +18,7 @@ async function main() {
   const lottery = await Lottery.deploy(
     token.address, //_token
     5, // _sizeOfLotteryNumbers
-    999999,
+    999999, // maximum number of chosen numbers
     1000000000000000000n, // _ticketPrice
     process.env.TREASURY_ADDRESS!!, // _treasuryAddress
     4, // _treasuryRatio
