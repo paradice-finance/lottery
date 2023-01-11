@@ -277,6 +277,14 @@ contract Lottery is Ownable, Initializable {
         return sizeOfLottery_ - currentTickets_.length;
     }
 
+    function getTicketsInCurrentLottery()
+        public
+        view
+        returns (uint256[] memory)
+    {
+        return currentTickets_;
+    }
+
     // get quantity of tickets that are available for claim affiliate
     function getAffiliateTicketQty(
         uint256[] memory _lotteryIds
@@ -477,7 +485,9 @@ contract Lottery is Ownable, Initializable {
 
             for (uint256 j = 0; j < currentTickets_.length; j++) {
                 if (currentTickets_[j] == ticketIds[i]) {
-                    currentTickets_[j] = currentTickets_[currentTickets_.length - 1];
+                    currentTickets_[j] = currentTickets_[
+                        currentTickets_.length - 1
+                    ];
                     currentTickets_.pop();
                 }
             }

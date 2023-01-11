@@ -353,6 +353,12 @@ describe('Lottery Contract', () => {
       expect(await lottery.getAvailableTicketQty()).to.equal(
         setup.sizeOfLotteryNumbers - 1 // buy 2 tickets but refund only 1 ticket
       );
+
+      expect(
+        Number(
+          await lottery.connect(buyerWithAllowance).getTicketsInCurrentLottery()
+        )
+      ).to.equal(2); // should have only ticket id 2 in current lottery after refund
     });
     it('should emit event BatchRefundTicket when success', async () => {
       await lottery.connect(owner).createNewLottery();
@@ -746,6 +752,21 @@ describe('Lottery Contract', () => {
         .connect(owner)
         .getAvailableTicketQty();
       assert.equal(availableTicket, 4);
+    });
+  });
+
+  describe('Get tickets in current lottery', () => {
+    it('should return tickets when success', async () => {
+      await lottery.connect(owner).createNewLottery();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(1, [1], seller.address, true);
+
+      expect(
+        Number(
+          await lottery.connect(buyerWithAllowance).getTicketsInCurrentLottery()
+        )
+      ).to.equal(1);
     });
   });
 });
