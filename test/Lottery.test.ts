@@ -292,6 +292,80 @@ describe('Lottery Contract', () => {
     });
   });
 
+  describe('Batch refund tickets', () => {
+    it('should revert when current lotteryStatus is not Open', async () => {
+      await lottery.connect(owner).createNewLottery();
+      lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          nullAddress,
+          false
+        );
+
+      await expect(
+        lottery.connect(buyerWithAllowance).batchRefundTicket([1, 2])
+      ).to.be.revertedWith(errors.invalid_refund_not_open_status);
+    });
+    it('should revert when not owner of ticket', async () => {
+      await lottery.connect(owner).createNewLottery();
+      lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(1, [1], nullAddress, false);
+
+      await expect(
+        lottery.connect(buyer).batchRefundTicket([1])
+      ).to.be.revertedWith(errors.invalid_ticket_owner);
+    });
+    it('should return token back to buyer', async () => {
+      await lottery.connect(owner).createNewLottery();
+      let balanceBeforeBuy = await token.balanceOf(buyerWithAllowance.address);
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(1, [1], seller.address, true);
+      await lottery.connect(buyerWithAllowance).batchRefundTicket([1]);
+
+      let balanceAfterRefund = await token.balanceOf(
+        buyerWithAllowance.address
+      );
+
+      assert.equal(Number(balanceBeforeBuy), Number(balanceAfterRefund));
+    });
+    it('should deduct affiliate count after refund', async () => {
+      await lottery.connect(owner).createNewLottery();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(1, [1], seller.address, true);
+      await lottery.connect(buyerWithAllowance).batchRefundTicket([1]);
+
+      let resp = await lottery.connect(seller).getAffiliateTicketQty([1]);
+      // resp[1][0] = aff count of lotteryIds[0]
+      expect(Number(resp[1][0])).to.equal(0);
+    });
+    it('should have available ticket equal to before buy', async () => {
+      await lottery.connect(owner).createNewLottery();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(2, [1, 2], seller.address, true);
+      await lottery.connect(buyerWithAllowance).batchRefundTicket([1]);
+
+      expect(await lottery.getAvailableTicketQty()).to.equal(
+        setup.sizeOfLotteryNumbers - 1 // buy 2 tickets but refund only 1 ticket
+      );
+    });
+    it('should emit event BatchRefundTicket when success', async () => {
+      await lottery.connect(owner).createNewLottery();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(1, [1], seller.address, true);
+
+      await expect(
+        lottery.connect(buyerWithAllowance).batchRefundTicket([1])
+      ).to.emit(lottery, events.batchRefundTicket);
+    });
+  });
+
   describe('Request winning number', () => {
     it('should emit event RequestNumbers when success', async () => {
       await lottery.connect(owner).createNewLottery();

@@ -69,6 +69,7 @@ contract Lottery is Ownable, Initializable {
         address owner;
         bool claimed;
         uint256 lotteryId;
+        address affiliateAddress;
     }
 
     // Lottery ID's to info
@@ -91,6 +92,13 @@ contract Lottery is Ownable, Initializable {
         uint256 lotteryId,
         uint256[] ticketIds,
         uint256 totalCost
+    );
+
+    event BatchRefundTicket(
+        address owner,
+        uint256 lotteryId,
+        uint256[] ticketIds,
+        uint256 totalRefundAmount
     );
 
     event RequestWinningNumbers(uint256 lotteryId, uint256 requestId);
@@ -271,15 +279,13 @@ contract Lottery is Ownable, Initializable {
 
     // get quantity of tickets that are available for claim affiliate
     function getAffiliateTicketQty(
-        uint256[] memory _lotteryId
+        uint256[] memory _lotteryIds
     ) external view returns (uint256[] memory, uint256[] memory) {
-        uint256[] memory lotteryIds = new uint256[](_lotteryId.length);
-        uint256[] memory ticketCount = new uint256[](_lotteryId.length);
-        for (uint256 i = 0; i < _lotteryId.length; i++) {
-            lotteryIds[i] = _lotteryId[i];
-            ticketCount[i] = allAffiliate_[msg.sender][_lotteryId[i]];
+        uint256[] memory ticketCount = new uint256[](_lotteryIds.length);
+        for (uint256 i = 0; i < _lotteryIds.length; i++) {
+            ticketCount[i] = allAffiliate_[msg.sender][_lotteryIds[i]];
         }
-        return (lotteryIds, ticketCount);
+        return (_lotteryIds, ticketCount);
     }
 
     // get amount of token that owner can claim for specific lotteryId
@@ -405,7 +411,7 @@ contract Lottery is Ownable, Initializable {
 
         // Batch mints the user their tickets
         uint256[] memory ticketIds = new uint256[](_ticketQty);
-        for (uint8 i = 0; i < _ticketQty; i++) {
+        for (uint256 i = 0; i < _ticketQty; i++) {
             require(
                 _chosenNumbersForEachTicket[i] <= maximumChosenNumber_,
                 "Chosen number out of range"
@@ -417,14 +423,15 @@ contract Lottery is Ownable, Initializable {
                 _chosenNumbersForEachTicket[i],
                 msg.sender,
                 false,
-                lotteryIdCounter_
+                lotteryIdCounter_,
+                address(0)
             );
             userTickets_[msg.sender][lotteryIdCounter_].push(ticketIdCounter_);
-            // Incrementing the tokenId counter
-            ticketIdCounter_ += 1;
             // set affiliate address
             if (_isAffiliate) {
                 allAffiliate_[_affiliateAddress][lotteryIdCounter_] += 1;
+                allTickets_[ticketIdCounter_]
+                    .affiliateAddress = _affiliateAddress;
                 // add affiliate size
                 sizeOfAffiliate_ += 1;
                 emit Affiliate(
@@ -433,6 +440,8 @@ contract Lottery is Ownable, Initializable {
                     allAffiliate_[_affiliateAddress][lotteryIdCounter_]
                 );
             }
+            // Incrementing the tokenId counter
+            ticketIdCounter_ += 1;
         }
         uint256 totalCost = ticketPrice_ * _ticketQty;
         // Transfers the required token to this contract
@@ -450,6 +459,47 @@ contract Lottery is Ownable, Initializable {
             emit LotteryClose(lotteryIdCounter_);
             requestWinningNumber();
         }
+    }
+
+    function batchRefundTicket(
+        uint256[] memory ticketIds
+    ) external payable notContract {
+        require(
+            allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Open,
+            "Lottery status incorrect for refund"
+        );
+
+        for (uint256 i = 0; i < ticketIds.length; i++) {
+            require(
+                allTickets_[ticketIds[i]].owner == msg.sender,
+                "You are not ticket's owner."
+            );
+
+            for (uint256 j = 0; j < currentTickets_.length; j++) {
+                if (currentTickets_[j] == ticketIds[i]) {
+                    currentTickets_[j] = currentTickets_[currentTickets_.length - 1];
+                    currentTickets_.pop();
+                }
+            }
+            // deduct affiliate amount
+            if (allTickets_[ticketIds[i]].affiliateAddress != address(0)) {
+                allAffiliate_[allTickets_[ticketIds[i]].affiliateAddress][
+                    lotteryIdCounter_
+                ] -= 1;
+                // add affiliate size
+                sizeOfAffiliate_ -= 1;
+            }
+        }
+
+        uint256 totalRefund = ticketPrice_ * ticketIds.length;
+        token_.transfer(address(msg.sender), totalRefund);
+
+        emit BatchRefundTicket(
+            msg.sender,
+            lotteryIdCounter_,
+            ticketIds,
+            totalRefund
+        );
     }
 
     /**

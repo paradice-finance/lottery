@@ -48,7 +48,8 @@ const lotto = {
     fullfilWinningNumber: 'FullfilWinningNumber',
     claimReward: 'ClaimReward',
     claimAffiliate: 'ClaimAffiliate',
-    claimTreasury: 'ClaimTreasury'
+    claimTreasury: 'ClaimTreasury',
+    batchRefundTicket: 'BatchRefundTicket'
   },
   status: {
     open: 0,
@@ -67,6 +68,7 @@ const lotto = {
       'The quantity of the _chosenNumbersForEachTicket is not equal with _ticketQty',
     invalid_buy_chosen_number_length: 'Chosen number out of range',
     invalid_buy_approve: 'ERC20: insufficient allowance',
+    invalid_refund_not_open_status: 'Lottery status incorrect for refund',
     invalid_random_generator: 'Only random generator',
     invalid_lottery_id: 'Invalid lotteryId.',
     invalid_ticket_id: 'Invalid ticketId.',
