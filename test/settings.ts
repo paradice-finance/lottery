@@ -39,7 +39,7 @@ const lotto = {
   events: {
     new: 'LotteryOpen',
     config: 'ConfigLottery',
-    batchBuy: 'NewBatchBuy',
+    batchBuy: 'BatchBuyTicket',
     affiliate: 'Affiliate',
     close: 'LotteryClose',
     requestRandom: 'RequestRandomNumber',

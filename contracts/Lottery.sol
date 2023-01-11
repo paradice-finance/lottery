@@ -91,6 +91,7 @@ contract Lottery is Ownable, Initializable {
         address indexed minter,
         uint256 lotteryId,
         uint256[] ticketIds,
+        uint32[] chosenNumbers,
         uint256 totalCost
     );
 
@@ -460,6 +461,7 @@ contract Lottery is Ownable, Initializable {
             msg.sender,
             lotteryIdCounter_,
             ticketIds,
+            _chosenNumbersForEachTicket,
             msg.value
         );
 

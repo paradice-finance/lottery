@@ -256,7 +256,7 @@ describe('Lottery Contract', () => {
         lottery.connect(buyer).batchBuyTicket(1, [1], nullAddress, false)
       ).to.be.revertedWith(errors.invalid_buy_approve);
     });
-    it('should emit event NewBatchMint when success', async () => {
+    it('should emit event BatchBuyTicket when success', async () => {
       await lottery.connect(owner).createNewLottery();
       await expect(
         lottery
