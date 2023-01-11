@@ -87,7 +87,7 @@ contract Lottery is Ownable, Initializable {
     // EVENTS
     //-------------------------------------------------------------------------
 
-    event NewBatchBuy(
+    event BatchBuyTicket(
         address indexed minter,
         uint256 lotteryId,
         uint256[] ticketIds,
@@ -456,7 +456,12 @@ contract Lottery is Ownable, Initializable {
         token_.transferFrom(msg.sender, address(this), totalCost);
 
         // Emitting batch buy ticket with all information
-        emit NewBatchBuy(msg.sender, lotteryIdCounter_, ticketIds, msg.value);
+        emit BatchBuyTicket(
+            msg.sender,
+            lotteryIdCounter_,
+            ticketIds,
+            msg.value
+        );
 
         // check for drawing win ticket
         if (
