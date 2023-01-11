@@ -503,7 +503,7 @@ contract Lottery is Ownable, Initializable {
                 allAffiliate_[allTickets_[ticketIds[i]].affiliateAddress][
                     lotteryIdCounter_
                 ] -= 1;
-                // add affiliate size
+                // reduce affiliate size
                 sizeOfAffiliate_ -= 1;
             }
         }
