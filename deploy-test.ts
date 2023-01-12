@@ -53,6 +53,9 @@ async function main() {
   } catch (error: any) {
     console.log(`Lottery Deploy Error: ${error.message}`);
   }
+
+  await lottery.initialize(randomNumberGenerator.address);
+  console.log('initialize success');
 }
 
 main().catch((error) => {
