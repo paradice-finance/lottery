@@ -88,7 +88,7 @@ contract Lottery is Ownable, Initializable {
     //-------------------------------------------------------------------------
 
     event BatchBuyTicket(
-        address indexed minter,
+        address minter,
         uint256 lotteryId,
         uint256[] ticketIds,
         uint32[] chosenNumbers,
@@ -120,7 +120,15 @@ contract Lottery is Ownable, Initializable {
         uint8 affiliateRatio
     );
 
-    event LotteryOpen(uint256 lotteryId);
+    event LotteryOpen(
+        uint256 lotteryId,
+        address token,
+        uint256 sizeOfLottery,
+        uint256 ticketPrice,
+        uint8 winnerRatio,
+        uint8 treasuryRatio,
+        uint8 affiliateRatio
+    );
 
     event LotteryClose(uint256 lotteryId);
 
@@ -216,7 +224,15 @@ contract Lottery is Ownable, Initializable {
 
         allLotteries_[lotteryIdCounter_] = newLottery;
         // Emitting important information around new lottery.
-        emit LotteryOpen(lotteryIdCounter_);
+        emit LotteryOpen(
+            lotteryIdCounter_,
+            address(token_),
+            sizeOfLottery_,
+            ticketPrice_,
+            winnerRatio_,
+            treasuryRatio_,
+            affiliateRatio_
+        );
     }
 
     function initialize(
@@ -342,7 +358,16 @@ contract Lottery is Ownable, Initializable {
 
         allLotteries_[lotteryIdCounter_] = lottery;
         // Emitting important information around new lottery.
-        emit LotteryOpen(lotteryIdCounter_);
+        emit LotteryOpen(
+            lotteryIdCounter_,
+            address(token_),
+            sizeOfLottery_,
+            ticketPrice_,
+            winnerRatio_,
+            treasuryRatio_,
+            affiliateRatio_
+        );
+
         return lotteryIdCounter_;
     }
 
@@ -402,7 +427,7 @@ contract Lottery is Ownable, Initializable {
         uint32[] calldata _chosenNumbersForEachTicket,
         address payable _affiliateAddress,
         bool _isAffiliate
-    ) external payable notContract {
+    ) external notContract {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Open,
             "Lottery status incorrect for buy"
@@ -462,7 +487,7 @@ contract Lottery is Ownable, Initializable {
             lotteryIdCounter_,
             ticketIds,
             _chosenNumbersForEachTicket,
-            msg.value
+            totalCost
         );
 
         // check for drawing win ticket
@@ -550,10 +575,7 @@ contract Lottery is Ownable, Initializable {
     }
 
     // For player to claim reward
-    function claimReward(
-        uint256 _lotteryId,
-        uint256 _ticketId
-    ) external payable {
+    function claimReward(uint256 _lotteryId, uint256 _ticketId) external {
         require(allLotteries_[_lotteryId].lotteryId != 0, "Invalid lotteryId.");
 
         require(allTickets_[_ticketId].number != 0, "Invalid ticketId.");
@@ -589,9 +611,7 @@ contract Lottery is Ownable, Initializable {
     /**
      * @param  _listOfLotterryId: all LotteryId that want to claim reward
      */
-    function claimAffiliate(
-        uint16[] calldata _listOfLotterryId
-    ) external payable {
+    function claimAffiliate(uint16[] calldata _listOfLotterryId) external {
         uint256[] memory claimedLotteryIds = new uint256[](
             _listOfLotterryId.length
         );
@@ -628,7 +648,7 @@ contract Lottery is Ownable, Initializable {
      */
     function claimTreasury(
         uint256[] calldata _listOfLotterryId
-    ) external payable onlyOwner {
+    ) external onlyOwner {
         uint256[] memory claimedLotteryIds = new uint256[](
             _listOfLotterryId.length
         );
@@ -656,8 +676,6 @@ contract Lottery is Ownable, Initializable {
         }
         emit ClaimTreasury(msg.sender, claimedLotteryIds);
     }
-
-    receive() external payable {}
 
     function requestWinningNumber() private returns (uint256 requestId) {
         // Requests a request number from the generator
