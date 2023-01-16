@@ -520,13 +520,28 @@ contract Lottery is Ownable, Initializable {
             );
 
             for (uint256 j = 0; j < currentTickets_.length; j++) {
+                // delete from current ticket list in round
                 if (currentTickets_[j] == ticketIds[i]) {
                     currentTickets_[j] = currentTickets_[
                         currentTickets_.length - 1
                     ];
                     currentTickets_.pop();
                 }
+
+                // delete ticket from user
+                if (
+                    userTickets_[msg.sender][lotteryIdCounter_][j] ==
+                    ticketIds[i]
+                ) {
+                    userTickets_[msg.sender][lotteryIdCounter_][
+                        j
+                    ] = userTickets_[msg.sender][lotteryIdCounter_][
+                        userTickets_[msg.sender][lotteryIdCounter_].length - 1
+                    ];
+                    userTickets_[msg.sender][lotteryIdCounter_].pop();
+                }
             }
+
             // deduct affiliate amount
             if (allTickets_[ticketIds[i]].affiliateAddress != address(0)) {
                 allAffiliate_[allTickets_[ticketIds[i]].affiliateAddress][
