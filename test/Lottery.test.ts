@@ -360,6 +360,22 @@ describe('Lottery Contract', () => {
         )
       ).to.equal(2); // should have only ticket id 2 in current lottery after refund
     });
+    it('should delete correct ticket from user tickets', async () => {
+      await lottery.connect(owner).createNewLottery();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(3, [1, 2, 3], seller.address, true);
+      await lottery.connect(buyerWithAllowance).batchRefundTicket([2]);
+      let tickets = await lottery
+        .connect(owner)
+        .getUserTickets(1, buyerWithAllowance.address);
+      let userTickets = tickets.map((ticketId: any) => ticketId.toNumber());
+
+      // should not found ticket id 2
+      expect(userTickets.includes(2)).to.equal(false);
+      // should only have 2 tickets left
+      expect(userTickets.length).to.equal(2);
+    });
     it('should emit event BatchRefundTicket when success', async () => {
       await lottery.connect(owner).createNewLottery();
       await lottery
