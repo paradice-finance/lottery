@@ -697,7 +697,7 @@ describe('Lottery Contract', () => {
     });
   });
 
-  describe('Get ticket info', () => {
+  describe('Get tickets info', () => {
     beforeEach(async () => {
       await lottery.connect(owner).createNewLottery();
       await lottery
@@ -710,11 +710,15 @@ describe('Lottery Contract', () => {
         );
     });
     it('should return ticket info when success', async () => {
-      let ticketInfo = await lottery.connect(owner).getTicket(1);
-      assert.equal(ticketInfo.number, expectedResponse.ticketInfo.number);
-      assert.equal(ticketInfo.owner, expectedResponse.ticketInfo.owner);
-      assert.equal(ticketInfo.claimed, expectedResponse.ticketInfo.claimed);
-      assert.equal(ticketInfo.lotteryId, expectedResponse.ticketInfo.lotteryId);
+      let ticketInfo = await lottery.connect(owner).getTickets([1]);
+      let firstTicket = ticketInfo[0];
+      assert.equal(firstTicket.number, expectedResponse.ticketInfo.number);
+      assert.equal(firstTicket.owner, expectedResponse.ticketInfo.owner);
+      assert.equal(firstTicket.claimed, expectedResponse.ticketInfo.claimed);
+      assert.equal(
+        firstTicket.lotteryId,
+        expectedResponse.ticketInfo.lotteryId
+      );
     });
   });
 

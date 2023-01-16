@@ -274,19 +274,23 @@ contract Lottery is Ownable, Initializable {
         return allTickets_[_ticketId].owner;
     }
 
-    // get ticket information
-    function getTicket(
-        uint256 _ticketId
-    ) external view returns (Ticket memory) {
-        return allTickets_[_ticketId];
-    }
-
-    // get ticket information for a specific user
+    // get tickets for a specific user
     function getUserTickets(
         uint256 _lotteryId,
         address _user
     ) external view returns (uint256[] memory) {
         return userTickets_[_user][_lotteryId];
+    }
+
+    // get ticket information
+    function getTickets(
+        uint256[] memory _ticketIds
+    ) external view returns (Ticket[] memory) {
+        Ticket[] memory tickets = new Ticket[](_ticketIds.length);
+        for (uint256 i = 0; i < _ticketIds.length; i++) {
+            tickets[i] = allTickets_[_ticketIds[i]];
+        }
+        return tickets;
     }
 
     // check available tickets for current round
