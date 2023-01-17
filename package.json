@@ -10,7 +10,7 @@
     "test:lottery": "npx hardhat test ./test/Lottery.test.ts",
     "test:random": "npx hardhat test ./test/Random.test.ts",
     "coverage": "npx hardhat coverage",
-    "deploy:test": "npx hardhat run scripts/deploy-test.ts --network goerli"
+    "deploy:testnet:lottery": "npx hardhat run scripts/testnet/deploy_lottery.ts --network goerli"
   },
   "repository": {
     "type": "git",
