@@ -220,7 +220,7 @@ describe('Lottery Contract', () => {
   describe('Batch buy tickets', () => {
     it('should revert when current lotteryStatus is not Open', async () => {
       await expect(
-        lottery.connect(buyer).batchBuyTicket(1, [1], nullAddress, false)
+        lottery.connect(buyer).batchBuyTicket(1, [1], nullAddress)
       ).to.be.revertedWith(errors.invalid_buy_not_open);
     });
     it('should revert when buying ticket quantity > available tickets ', async () => {
@@ -231,37 +231,32 @@ describe('Lottery Contract', () => {
           .batchBuyTicket(
             setup.sizeOfLotteryNumbers + 1,
             setup.chosenNumbersForEachTicket,
-            nullAddress,
-            false
+            nullAddress
           )
       ).to.be.revertedWith(errors.invalid_buy_to_large);
     });
     it('should revert when invalid _chosenNumbersForEachTicket', async () => {
       await lottery.connect(owner).createNewLottery();
       await expect(
-        lottery.connect(buyer).batchBuyTicket(3, [1, 2], nullAddress, false)
+        lottery.connect(buyer).batchBuyTicket(3, [1, 2], nullAddress)
       ).to.be.revertedWith(errors.invalid_buy_chosen_number);
     });
     it('should revert when chosen number out of range', async () => {
       await lottery.connect(owner).createNewLottery();
       await expect(
-        lottery
-          .connect(buyer)
-          .batchBuyTicket(3, [1, 2, 100000000], nullAddress, false)
+        lottery.connect(buyer).batchBuyTicket(3, [1, 2, 100000000], nullAddress)
       ).to.be.revertedWith(errors.invalid_buy_chosen_number_length);
     });
     it("should revert when buyer don't have enough token for transfer", async () => {
       await lottery.connect(owner).createNewLottery();
       await expect(
-        lottery.connect(buyer).batchBuyTicket(1, [1], nullAddress, false)
+        lottery.connect(buyer).batchBuyTicket(1, [1], nullAddress)
       ).to.be.revertedWith(errors.invalid_buy_approve);
     });
     it('should emit event BatchBuyTicket when success', async () => {
       await lottery.connect(owner).createNewLottery();
       await expect(
-        lottery
-          .connect(buyerWithAllowance)
-          .batchBuyTicket(1, [1], nullAddress, false)
+        lottery.connect(buyerWithAllowance).batchBuyTicket(1, [1], nullAddress)
       ).to.emit(lottery, events.batchBuy);
     });
     it('should emit event Affiliate when success batch buy with affiliate address', async () => {
@@ -269,7 +264,7 @@ describe('Lottery Contract', () => {
       await expect(
         lottery
           .connect(buyerWithAllowance)
-          .batchBuyTicket(1, [1], seller.address, true)
+          .batchBuyTicket(1, [1], seller.address)
       ).to.emit(lottery, events.affiliate);
     });
     it('should emit event LotteryClose when fully sell tickets', async () => {
@@ -280,8 +275,7 @@ describe('Lottery Contract', () => {
           .batchBuyTicket(
             setup.sizeOfLotteryNumbers,
             setup.chosenNumbersForEachTicket,
-            nullAddress,
-            false
+            nullAddress
           )
       ).to.emit(lottery, events.close);
 
@@ -300,8 +294,7 @@ describe('Lottery Contract', () => {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          nullAddress,
-          false
+          nullAddress
         );
 
       await expect(
@@ -310,9 +303,7 @@ describe('Lottery Contract', () => {
     });
     it('should revert when not owner of ticket', async () => {
       await lottery.connect(owner).createNewLottery();
-      lottery
-        .connect(buyerWithAllowance)
-        .batchBuyTicket(1, [1], nullAddress, false);
+      lottery.connect(buyerWithAllowance).batchBuyTicket(1, [1], nullAddress);
 
       await expect(
         lottery.connect(buyer).batchRefundTicket([1])
@@ -323,7 +314,7 @@ describe('Lottery Contract', () => {
       let balanceBeforeBuy = await token.balanceOf(buyerWithAllowance.address);
       await lottery
         .connect(buyerWithAllowance)
-        .batchBuyTicket(1, [1], seller.address, true);
+        .batchBuyTicket(1, [1], seller.address);
       await lottery.connect(buyerWithAllowance).batchRefundTicket([1]);
 
       let balanceAfterRefund = await token.balanceOf(
@@ -336,7 +327,7 @@ describe('Lottery Contract', () => {
       await lottery.connect(owner).createNewLottery();
       await lottery
         .connect(buyerWithAllowance)
-        .batchBuyTicket(1, [1], seller.address, true);
+        .batchBuyTicket(1, [1], seller.address);
       await lottery.connect(buyerWithAllowance).batchRefundTicket([1]);
 
       let resp = await lottery.connect(seller).getAffiliateTicketQty([1]);
@@ -347,7 +338,7 @@ describe('Lottery Contract', () => {
       await lottery.connect(owner).createNewLottery();
       await lottery
         .connect(buyerWithAllowance)
-        .batchBuyTicket(2, [1, 2], seller.address, true);
+        .batchBuyTicket(2, [1, 2], seller.address);
       await lottery.connect(buyerWithAllowance).batchRefundTicket([1]);
 
       expect(await lottery.getAvailableTicketQty()).to.equal(
@@ -364,7 +355,7 @@ describe('Lottery Contract', () => {
       await lottery.connect(owner).createNewLottery();
       await lottery
         .connect(buyerWithAllowance)
-        .batchBuyTicket(3, [1, 2, 3], seller.address, true);
+        .batchBuyTicket(3, [1, 2, 3], seller.address);
       await lottery.connect(buyerWithAllowance).batchRefundTicket([2]);
       let tickets = await lottery
         .connect(owner)
@@ -380,7 +371,7 @@ describe('Lottery Contract', () => {
       await lottery.connect(owner).createNewLottery();
       await lottery
         .connect(buyerWithAllowance)
-        .batchBuyTicket(1, [1], seller.address, true);
+        .batchBuyTicket(1, [1], seller.address);
 
       await expect(
         lottery.connect(buyerWithAllowance).batchRefundTicket([1])
@@ -397,8 +388,7 @@ describe('Lottery Contract', () => {
           .batchBuyTicket(
             setup.sizeOfLotteryNumbers,
             setup.chosenNumbersForEachTicket,
-            nullAddress,
-            false
+            nullAddress
           )
       ).to.emit(lottery, events.requestWinningNumber);
     });
@@ -418,8 +408,7 @@ describe('Lottery Contract', () => {
           .batchBuyTicket(
             setup.sizeOfLotteryNumbers,
             setup.chosenNumbersForEachTicket,
-            nullAddress,
-            false
+            nullAddress
           )
       ).wait();
 
@@ -448,8 +437,7 @@ describe('Lottery Contract', () => {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          nullAddress,
-          false
+          nullAddress
         );
       await mockVRF
         .connect(owner)
@@ -494,6 +482,25 @@ describe('Lottery Contract', () => {
   });
 
   describe('Get affiliate ticket quantity', async () => {
+    it('should return correct ticket quantity when partial buy with affiliate', async () => {
+      await lottery.connect(owner).createNewLottery();
+      // buy without affiliate
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(1, [1], nullAddress);
+      // buy with affiliate
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(1, [2], seller.address);
+      // buy without affiliate again
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(1, [3], nullAddress);
+      const [_, ticketCount] = await lottery
+        .connect(seller)
+        .getAffiliateTicketQty([1]);
+      assert.equal(ticketCount, 2);
+    });
     it('should return correct ticket quantity when success', async () => {
       await lottery.connect(owner).createNewLottery();
       await lottery
@@ -501,8 +508,7 @@ describe('Lottery Contract', () => {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          seller.address,
-          true
+          seller.address
         );
       await mockVRF
         .connect(owner)
@@ -523,8 +529,7 @@ describe('Lottery Contract', () => {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          seller.address,
-          true
+          seller.address
         );
       await mockVRF
         .connect(owner)
@@ -584,8 +589,7 @@ describe('Lottery Contract', () => {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          seller.address,
-          true
+          seller.address
         );
       await mockVRF
         .connect(owner)
@@ -605,8 +609,7 @@ describe('Lottery Contract', () => {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          seller.address,
-          true
+          seller.address
         );
       await mockVRF
         .connect(owner)
@@ -701,8 +704,7 @@ describe('Lottery Contract', () => {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          seller.address,
-          true
+          seller.address
         );
     });
     it('should return ticket info when success', async () => {
@@ -721,8 +723,7 @@ describe('Lottery Contract', () => {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          seller.address,
-          true
+          seller.address
         );
     });
     it('should return ticket info when success', async () => {
@@ -746,8 +747,7 @@ describe('Lottery Contract', () => {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          seller.address,
-          true
+          seller.address
         );
     });
     it('should return user tickets when success', async () => {
@@ -765,7 +765,7 @@ describe('Lottery Contract', () => {
       await lottery.connect(owner).createNewLottery();
       await lottery
         .connect(buyerWithAllowance)
-        .batchBuyTicket(1, [1], seller.address, true);
+        .batchBuyTicket(1, [1], seller.address);
     });
     it('should return user tickets when success', async () => {
       let availableTicket = await lottery
@@ -780,7 +780,7 @@ describe('Lottery Contract', () => {
       await lottery.connect(owner).createNewLottery();
       await lottery
         .connect(buyerWithAllowance)
-        .batchBuyTicket(1, [1], seller.address, true);
+        .batchBuyTicket(1, [1], seller.address);
 
       expect(
         Number(

@@ -78,6 +78,8 @@ contract Lottery is Ownable, Initializable {
     mapping(uint256 => Ticket) internal allTickets_;
     // User address => Lottery ID => Ticket IDs
     mapping(address => mapping(uint256 => uint256[])) internal userTickets_;
+    // User address => Affiliate address
+    mapping(address => address) internal userAffiliate_;
     // Affiliate address => Lottery ID => Ticket Count
     mapping(address => mapping(uint256 => uint256)) internal allAffiliate_;
     // Lottery ID's to treasury amount
@@ -146,7 +148,7 @@ contract Lottery is Ownable, Initializable {
 
     event ClaimAffiliate(address affiliateAddress, uint256[] lotteryIds);
 
-    event ClaimTreasury(address affiliateAddress, uint256[] lotteryIds);
+    event ClaimTreasury(address treasuryAddress, uint256[] lotteryIds);
 
     //-------------------------------------------------------------------------
     // MODIFIERS
@@ -424,13 +426,11 @@ contract Lottery is Ownable, Initializable {
      * @param  _ticketQty: The quantity of the ticket
      * @param  _chosenNumbersForEachTicket: Number of each ticket
      * @param  _affiliateAddress: will be use when _isAffiliate == true
-     * @param  _isAffiliate: ticket buy with aff or not
      */
     function batchBuyTicket(
         uint8 _ticketQty,
         uint32[] calldata _chosenNumbersForEachTicket,
-        address payable _affiliateAddress,
-        bool _isAffiliate
+        address payable _affiliateAddress
     ) external notContract {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Open,
@@ -465,17 +465,25 @@ contract Lottery is Ownable, Initializable {
                 address(0)
             );
             userTickets_[msg.sender][lotteryIdCounter_].push(ticketIdCounter_);
-            // set affiliate address
-            if (_isAffiliate) {
-                allAffiliate_[_affiliateAddress][lotteryIdCounter_] += 1;
-                allTickets_[ticketIdCounter_]
-                    .affiliateAddress = _affiliateAddress;
+
+            // registered user affiliate
+            if (userAffiliate_[msg.sender] == address(0)) {
+                userAffiliate_[msg.sender] = _affiliateAddress;
+            }
+            // update affiliate
+            if (userAffiliate_[msg.sender] != address(0)) {
+                allAffiliate_[userAffiliate_[msg.sender]][
+                    lotteryIdCounter_
+                ] += 1;
+                allTickets_[ticketIdCounter_].affiliateAddress = userAffiliate_[
+                    msg.sender
+                ];
                 // add affiliate size
                 sizeOfAffiliate_ += 1;
                 emit Affiliate(
                     _affiliateAddress,
                     lotteryIdCounter_,
-                    allAffiliate_[_affiliateAddress][lotteryIdCounter_]
+                    allAffiliate_[userAffiliate_[msg.sender]][lotteryIdCounter_]
                 );
             }
             // Incrementing the tokenId counter
@@ -507,7 +515,7 @@ contract Lottery is Ownable, Initializable {
 
     function batchRefundTicket(
         uint256[] memory ticketIds
-    ) external payable notContract {
+    ) external notContract {
         require(
             allLotteries_[lotteryIdCounter_].lotteryStatus == Status.Open,
             "Lottery status incorrect for refund"
