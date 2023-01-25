@@ -92,8 +92,7 @@ describe('Random number generator', function () {
           .batchBuyTicket(
             setup.sizeOfLotteryNumbers,
             setup.chosenNumbersForEachTicket,
-            nullAddress,
-            false
+            nullAddress
           )
       ).to.emit(randomNumberGenerator, events.requestRandom);
     });
@@ -108,8 +107,7 @@ describe('Random number generator', function () {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          nullAddress,
-          false
+          nullAddress
         );
       let result: any = await buy.wait();
 
@@ -136,8 +134,7 @@ describe('Random number generator', function () {
         .batchBuyTicket(
           setup.sizeOfLotteryNumbers,
           setup.chosenNumbersForEachTicket,
-          nullAddress,
-          false
+          nullAddress
         );
       let result: any = await buy.wait();
 
