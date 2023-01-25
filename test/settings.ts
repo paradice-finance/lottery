@@ -47,6 +47,7 @@ const lotto = {
     requestWinningNumber: 'RequestWinningNumbers',
     fullfilWinningNumber: 'FullfilWinningNumber',
     claimReward: 'ClaimReward',
+    autoClaimReward: 'AutoClaimReward',
     claimAffiliate: 'ClaimAffiliate',
     claimTreasury: 'ClaimTreasury',
     batchRefundTicket: 'BatchRefundTicket'

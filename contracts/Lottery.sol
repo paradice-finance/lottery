@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // Random number
 import "./IRandomNumberGenerator.sol";
+import "hardhat/console.sol";
 
 contract Lottery is Ownable, Initializable {
     using Address for address;
@@ -76,6 +77,8 @@ contract Lottery is Ownable, Initializable {
     mapping(uint256 => LotteryInfo) internal allLotteries_;
     // Ticket ID's to info
     mapping(uint256 => Ticket) internal allTickets_;
+    // User address => list of Lottery ID (all unclaimed lotteries)
+    mapping(address => uint256[]) internal userUnclaimedLotteries_;
     // User address => Lottery ID => Ticket IDs
     mapping(address => mapping(uint256 => uint256[])) internal userTickets_;
     // User address => Affiliate address
@@ -145,6 +148,8 @@ contract Lottery is Ownable, Initializable {
         uint256 ticketId,
         uint256 lotteryId
     );
+
+    event AutoClaimReward(address winnerAddress, uint256[] lotteryIds);
 
     event ClaimAffiliate(address affiliateAddress, uint256[] lotteryIds);
 
@@ -293,6 +298,10 @@ contract Lottery is Ownable, Initializable {
             tickets[i] = allTickets_[_ticketIds[i]];
         }
         return tickets;
+    }
+
+    function getWinningLottery() external view returns (uint256[] memory) {
+        return userUnclaimedLotteries_[msg.sender];
     }
 
     // check available tickets for current round
@@ -582,7 +591,9 @@ contract Lottery is Ownable, Initializable {
             _randomIndex
         ];
 
-        allLotteries_[_lotteryId].lotteryStatus = Status.Completed;
+        Ticket memory ticketInfo = allTickets_[currentTickets_[_randomIndex]];
+
+        userUnclaimedLotteries_[ticketInfo.owner].push(_lotteryId);
 
         // Send token to treasury address (treasuryEquity = treasury equity + unowned affiliate)
         uint256 treasuryEquity = ((sizeOfLottery_ *
@@ -594,6 +605,7 @@ contract Lottery is Ownable, Initializable {
         sizeOfAffiliate_ = 0;
         allTreasuryAmount_[_lotteryId] = treasuryEquity;
 
+        allLotteries_[_lotteryId].lotteryStatus = Status.Completed;
         emit FullfilWinningNumber(
             _lotteryId,
             currentTickets_[_randomIndex],
@@ -633,6 +645,40 @@ contract Lottery is Ownable, Initializable {
         );
 
         emit ClaimReward(msg.sender, _ticketId, _lotteryId);
+    }
+
+    function autoClaimReward() external {
+        require(
+            userUnclaimedLotteries_[msg.sender].length != 0,
+            "You don't have unclaimed rewards."
+        );
+        uint256[] memory allWinningRound = userUnclaimedLotteries_[msg.sender];
+
+        for (uint256 i = 0; i < allWinningRound.length - 1; i++) {
+            console.log(allWinningRound[i]);
+            LotteryInfo memory lottery = allLotteries_[
+                userUnclaimedLotteries_[msg.sender][i]
+            ];
+            // get all user ticket in current lottery
+            uint256[] memory userTickets = userTickets_[msg.sender][
+                lottery.lotteryId
+            ];
+            for (uint256 j = 0; j < userTickets.length - 1; j++) {
+                if (lottery.winningTicketId == userTickets[j]) {
+                    allTickets_[userTickets[j]].claimed = true;
+                    IERC20 token = IERC20(lottery.tokenAddress);
+                    token.transfer(
+                        address(msg.sender),
+                        (lottery.ticketPrice *
+                            lottery.sizeOfLottery *
+                            lottery.prizeDistributionRatio.winner) / 100
+                    );
+                }
+            }
+            delete userUnclaimedLotteries_[msg.sender][i];
+        }
+
+        emit AutoClaimReward(msg.sender, allWinningRound);
     }
 
     /**

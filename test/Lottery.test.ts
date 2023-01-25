@@ -481,6 +481,47 @@ describe('Lottery Contract', () => {
     });
   });
 
+  describe('Auto claim reward', () => {
+    beforeEach(async () => {
+      await lottery.connect(owner).createNewLottery();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          nullAddress
+        );
+      await mockVRF
+        .connect(owner)
+        .fulfillRandomWords(1, randomNumberGenerator.address);
+    });
+    it('should emit event ClaimReward when success', async () => {
+      // console.log(
+      //   'lottery info: ',
+      //   await lottery.connect(buyerWithAllowance).getLottery(1)
+      // );
+      console.log(
+        'balance before claim reward: ',
+        await token.balanceOf(buyerWithAllowance.address)
+      );
+      // console.log(
+      //   'lottery list before claim: ',
+      //   await lottery.connect(buyerWithAllowance).getWinningLottery()
+      // );
+      await expect(
+        await lottery.connect(buyerWithAllowance).autoClaimReward()
+      ).to.emit(lottery, events.autoClaimReward);
+      console.log(
+        'balance after  claim reward: ',
+        await token.balanceOf(buyerWithAllowance.address)
+      );
+      // console.log(
+      //   'lottery list after claim: ',
+      //   await lottery.connect(buyerWithAllowance).getWinningLottery()
+      // );
+    });
+  });
+
   describe('Get affiliate ticket quantity', async () => {
     it('should return correct ticket quantity when partial buy with affiliate', async () => {
       await lottery.connect(owner).createNewLottery();
