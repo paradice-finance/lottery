@@ -86,7 +86,7 @@ const lotto = {
     config_new_lottery_when_previous_lottery_not_finished:
       'Cannot be config if the current lotto are not finished.',
     invalid_random_caller: 'Only Lottery can call function',
-    do_not_have_unclaimed_reward: "You don't have unclaimed rewards."
+    do_not_have_reward_to_claim: "You don't have any rewards to claim."
   }
 };
 

@@ -445,19 +445,19 @@ describe('Lottery Contract', () => {
     it('should revert when lotto status is not "completed"', async () => {
       await lottery.connect(owner).createNewLottery();
       await expect(lottery.connect(buyer).claimReward()).to.be.revertedWith(
-        errors.do_not_have_unclaimed_reward
+        errors.do_not_have_reward_to_claim
       );
     });
     it('should be reverted when caller not have unclaimed reward', async () => {
       await expect(lottery.connect(buyer).claimReward()).to.be.revertedWith(
-        errors.do_not_have_unclaimed_reward
+        errors.do_not_have_reward_to_claim
       );
     });
     it('should be reverted when winner claim twice', async () => {
       await lottery.connect(buyerWithAllowance).claimReward();
       await expect(
         lottery.connect(buyerWithAllowance).claimReward()
-      ).to.be.revertedWith(errors.do_not_have_unclaimed_reward);
+      ).to.be.revertedWith(errors.do_not_have_reward_to_claim);
     });
     it('should work correctly when have stack win', async () => {
       await lottery.connect(owner).createNewLottery();

@@ -615,7 +615,7 @@ contract Lottery is Ownable, Initializable {
     function claimReward() external {
         require(
             userUnclaimedLotteries_[msg.sender].length != 0,
-            "You don't have unclaimed rewards."
+            "You don't have any rewards to claim."
         );
         uint256[] memory allWinningRound = userUnclaimedLotteries_[msg.sender];
         for (uint256 i = allWinningRound.length; i > 0; i--) {
