@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 // Random number
 import "./IRandomNumberGenerator.sol";
-import "hardhat/console.sol";
 
 contract Lottery is Ownable, Initializable {
     using Address for address;
