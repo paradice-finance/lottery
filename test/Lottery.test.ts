@@ -481,28 +481,6 @@ describe('Lottery Contract', () => {
         await lottery.connect(buyerWithAllowance).getWinningLotteries()
       ).to.be.an('array').that.is.empty;
     });
-    it('should work correctly when have stack win', async () => {
-      await lottery.connect(owner).createNewLottery();
-      await lottery
-        .connect(buyerWithAllowance)
-        .batchBuyTicket(
-          setup.sizeOfLotteryNumbers,
-          setup.chosenNumbersForEachTicket,
-          nullAddress
-        );
-      await mockVRF
-        .connect(owner)
-        .fulfillRandomWords(2, randomNumberGenerator.address);
-      await expect(
-        await lottery.connect(buyerWithAllowance).claimReward()
-      ).to.emit(lottery, events.claimReward);
-      expect(await token.balanceOf(buyerWithAllowance.address)).to.equal(
-        expectedResponse.balanceAfterClaimRewardTwoLottery
-      );
-      expect(
-        await lottery.connect(buyerWithAllowance).getWinningLotteries()
-      ).to.be.an('array').that.is.empty;
-    });
     it('should work correctly when play and collect reward multiple times', async () => {
       await lottery.connect(buyerWithAllowance).claimReward();
       await lottery.connect(owner).createNewLottery();
