@@ -76,6 +76,8 @@ contract Lottery is Ownable, Initializable {
     mapping(uint256 => LotteryInfo) internal allLotteries_;
     // Ticket ID's to info
     mapping(uint256 => Ticket) internal allTickets_;
+    // User address => list of Lottery ID (all unclaimed lotteries)
+    mapping(address => uint256[]) internal userUnclaimedLotteries_;
     // User address => Lottery ID => Ticket IDs
     mapping(address => mapping(uint256 => uint256[])) internal userTickets_;
     // User address => Affiliate address
@@ -293,6 +295,11 @@ contract Lottery is Ownable, Initializable {
             tickets[i] = allTickets_[_ticketIds[i]];
         }
         return tickets;
+    }
+
+    // get all lottery id that user won
+    function getWinningLotteries() external view returns (uint256[] memory) {
+        return userUnclaimedLotteries_[msg.sender];
     }
 
     // check available tickets for current round
@@ -582,7 +589,9 @@ contract Lottery is Ownable, Initializable {
             _randomIndex
         ];
 
-        allLotteries_[_lotteryId].lotteryStatus = Status.Completed;
+        Ticket memory ticketInfo = allTickets_[currentTickets_[_randomIndex]];
+
+        userUnclaimedLotteries_[ticketInfo.owner].push(_lotteryId);
 
         // Send token to treasury address (treasuryEquity = treasury equity + unowned affiliate)
         uint256 treasuryEquity = ((sizeOfLottery_ *
@@ -594,6 +603,7 @@ contract Lottery is Ownable, Initializable {
         sizeOfAffiliate_ = 0;
         allTreasuryAmount_[_lotteryId] = treasuryEquity;
 
+        allLotteries_[_lotteryId].lotteryStatus = Status.Completed;
         emit FullfilWinningNumber(
             _lotteryId,
             currentTickets_[_randomIndex],
@@ -602,37 +612,30 @@ contract Lottery is Ownable, Initializable {
     }
 
     // For player to claim reward
-    function claimReward(uint256 _lotteryId, uint256 _ticketId) external {
-        require(allLotteries_[_lotteryId].lotteryId != 0, "Invalid lotteryId.");
-
-        require(allTickets_[_ticketId].number != 0, "Invalid ticketId.");
-
-        // Checks lottery numbers have not already been drawn
+    function claimReward() external {
         require(
-            allLotteries_[_lotteryId].lotteryStatus == Status.Completed,
-            "Can't claim reward from unfinished round"
+            userUnclaimedLotteries_[msg.sender].length > 0,
+            "You don't have any rewards to claim."
         );
-
-        require(
-            msg.sender == allTickets_[_ticketId].owner,
-            "You are not ticket's owner."
-        );
-
-        require(
-            allTickets_[_ticketId].claimed == false,
-            "The reward was claimed."
-        );
-        allTickets_[_ticketId].claimed = true;
-
-        IERC20 token = IERC20(allLotteries_[_lotteryId].tokenAddress);
-        token.transfer(
-            address(msg.sender),
-            (allLotteries_[_lotteryId].ticketPrice *
-                allLotteries_[_lotteryId].sizeOfLottery *
-                winnerRatio_) / 100
-        );
-
-        emit ClaimReward(msg.sender, _ticketId, _lotteryId);
+        uint256[] memory allWinningRound = userUnclaimedLotteries_[msg.sender];
+        for (uint256 i = allWinningRound.length; i > 0; i--) {
+            LotteryInfo memory lottery = allLotteries_[allWinningRound[i - 1]];
+            require(allTickets_[lottery.winningTicketId].owner == msg.sender);
+            allTickets_[lottery.winningTicketId].claimed = true;
+            IERC20 token = IERC20(lottery.tokenAddress);
+            token.transfer(
+                address(msg.sender),
+                (lottery.ticketPrice *
+                    lottery.sizeOfLottery *
+                    lottery.prizeDistributionRatio.winner) / 100
+            );
+            userUnclaimedLotteries_[msg.sender].pop();
+            emit ClaimReward(
+                msg.sender,
+                lottery.winningTicketId,
+                lottery.lotteryId
+            );
+        }
     }
 
     /**

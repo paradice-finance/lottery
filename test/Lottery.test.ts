@@ -428,7 +428,6 @@ describe('Lottery Contract', () => {
       assert.equal(lotteryInfoAfter.lotteryStatus, status.completed);
     });
   });
-
   describe('Claim reward', () => {
     beforeEach(async () => {
       await lottery.connect(owner).createNewLottery();
@@ -443,39 +442,74 @@ describe('Lottery Contract', () => {
         .connect(owner)
         .fulfillRandomWords(1, randomNumberGenerator.address);
     });
-    it('should revert when send invalid lotteryId', async () => {
-      await expect(
-        lottery.connect(buyerWithAllowance).claimReward(0, 0)
-      ).to.be.revertedWith(errors.invalid_lottery_id);
-    });
-    it('should revert when send invalid ticketId', async () => {
-      await expect(
-        lottery.connect(buyerWithAllowance).claimReward(1, 0)
-      ).to.be.revertedWith(errors.invalid_ticket_id);
-    });
     it('should revert when lotto status is not "completed"', async () => {
       await lottery.connect(owner).createNewLottery();
-      await expect(
-        lottery.connect(buyerWithAllowance).claimReward(2, 1)
-      ).to.be.revertedWith(errors.invalid_claim_not_complete);
-    });
-    it('should revert when sender is not ticket owner', async () => {
-      await expect(lottery.connect(buyer).claimReward(1, 1)).to.be.revertedWith(
-        errors.invalid_ticket_owner
+      await expect(lottery.connect(buyer).claimReward()).to.be.revertedWith(
+        errors.do_not_have_reward_to_claim
       );
     });
-    it('should revert when winner claim twice', async () => {
-      await lottery.connect(buyerWithAllowance).claimReward(1, 2);
+    it('should be reverted when caller not have unclaimed reward', async () => {
+      await expect(lottery.connect(buyer).claimReward()).to.be.revertedWith(
+        errors.do_not_have_reward_to_claim
+      );
+    });
+    it('should be reverted when winner claim twice', async () => {
+      await lottery.connect(buyerWithAllowance).claimReward();
       await expect(
-        lottery.connect(buyerWithAllowance).claimReward(1, 2)
-      ).to.be.revertedWith(errors.invalid_claim_twice);
+        lottery.connect(buyerWithAllowance).claimReward()
+      ).to.be.revertedWith(errors.do_not_have_reward_to_claim);
+    });
+    it('should work correctly when have stack win', async () => {
+      await lottery.connect(owner).createNewLottery();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          nullAddress
+        );
+      await mockVRF
+        .connect(owner)
+        .fulfillRandomWords(2, randomNumberGenerator.address);
+      await expect(
+        await lottery.connect(buyerWithAllowance).claimReward()
+      ).to.emit(lottery, events.claimReward);
+      expect(await token.balanceOf(buyerWithAllowance.address)).to.equal(
+        expectedResponse.balanceAfterClaimRewardTwoLottery
+      );
+      expect(
+        await lottery.connect(buyerWithAllowance).getWinningLotteries()
+      ).to.be.an('array').that.is.empty;
+    });
+    it('should work correctly when play and collect reward multiple times', async () => {
+      await lottery.connect(buyerWithAllowance).claimReward();
+      await lottery.connect(owner).createNewLottery();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          nullAddress
+        );
+      await mockVRF
+        .connect(owner)
+        .fulfillRandomWords(2, randomNumberGenerator.address);
+      await expect(
+        await lottery.connect(buyerWithAllowance).claimReward()
+      ).to.emit(lottery, events.claimReward);
+      expect(await token.balanceOf(buyerWithAllowance.address)).to.equal(
+        expectedResponse.balanceAfterClaimRewardTwoLottery
+      );
+      expect(
+        await lottery.connect(buyerWithAllowance).getWinningLotteries()
+      ).to.be.an('array').that.is.empty;
     });
     it('should emit event ClaimReward when success', async () => {
       await expect(
-        await lottery.connect(buyerWithAllowance).claimReward(1, 2)
+        await lottery.connect(buyerWithAllowance).claimReward()
       ).to.emit(lottery, events.claimReward);
-      assert.equal(
-        await token.balanceOf(buyerWithAllowance.address),
+
+      expect(await token.balanceOf(buyerWithAllowance.address)).to.equal(
         expectedResponse.balanceAfterClaimReward
       );
     });
@@ -787,6 +821,32 @@ describe('Lottery Contract', () => {
           await lottery.connect(buyerWithAllowance).getTicketsInCurrentLottery()
         )
       ).to.equal(1);
+    });
+  });
+
+  describe('Get winning lotteries', async () => {
+    it('should return empty if buyer not won lottery', async () => {
+      await lottery.connect(owner).createNewLottery();
+      expect(
+        await lottery.connect(buyerWithAllowance).getWinningLotteries()
+      ).to.be.an('array').that.is.empty;
+    });
+    it('should return lottery id that buyer won', async () => {
+      await lottery.connect(owner).createNewLottery();
+      await lottery
+        .connect(buyerWithAllowance)
+        .batchBuyTicket(
+          setup.sizeOfLotteryNumbers,
+          setup.chosenNumbersForEachTicket,
+          nullAddress
+        );
+      await mockVRF
+        .connect(owner)
+        .fulfillRandomWords(1, randomNumberGenerator.address);
+
+      expect(
+        Number(await lottery.connect(buyerWithAllowance).getWinningLotteries())
+      ).equal(1);
     });
   });
 });

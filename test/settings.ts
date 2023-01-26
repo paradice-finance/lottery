@@ -25,6 +25,8 @@ const lotto = {
   expectedResponse: {
     balanceAfterBuy: 9995000000000000000000n,
     balanceAfterClaimReward: 9999750000000000000000n,
+    balanceAfterBuyTwoLottery: 9990000000000000000000n,
+    balanceAfterClaimRewardTwoLottery: 9999500000000000000000n,
     sellerBalanceAfterClaim: 50000000000000000n,
     treasuryAmount: 200000000000000000n, // treasury amount the owner should receive after round 1 (5 tickets)
     ticketInfo: {
@@ -83,7 +85,8 @@ const lotto = {
       'Cannot be created if the current lotto are not finished.',
     config_new_lottery_when_previous_lottery_not_finished:
       'Cannot be config if the current lotto are not finished.',
-    invalid_random_caller: 'Only Lottery can call function'
+    invalid_random_caller: 'Only Lottery can call function',
+    do_not_have_reward_to_claim: "You don't have any rewards to claim."
   }
 };
 
