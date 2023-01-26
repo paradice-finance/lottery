@@ -149,8 +149,6 @@ contract Lottery is Ownable, Initializable {
         uint256 lotteryId
     );
 
-    event AutoClaimReward(address winnerAddress, uint256[] lotteryIds);
-
     event ClaimAffiliate(address affiliateAddress, uint256[] lotteryIds);
 
     event ClaimTreasury(address treasuryAddress, uint256[] lotteryIds);
@@ -300,7 +298,8 @@ contract Lottery is Ownable, Initializable {
         return tickets;
     }
 
-    function getWinningLottery() external view returns (uint256[] memory) {
+    // get all lottery id that user won
+    function getWinningLotteries() external view returns (uint256[] memory) {
         return userUnclaimedLotteries_[msg.sender];
     }
 
@@ -614,71 +613,30 @@ contract Lottery is Ownable, Initializable {
     }
 
     // For player to claim reward
-    function claimReward(uint256 _lotteryId, uint256 _ticketId) external {
-        require(allLotteries_[_lotteryId].lotteryId != 0, "Invalid lotteryId.");
-
-        require(allTickets_[_ticketId].number != 0, "Invalid ticketId.");
-
-        // Checks lottery numbers have not already been drawn
-        require(
-            allLotteries_[_lotteryId].lotteryStatus == Status.Completed,
-            "Can't claim reward from unfinished round"
-        );
-
-        require(
-            msg.sender == allTickets_[_ticketId].owner,
-            "You are not ticket's owner."
-        );
-
-        require(
-            allTickets_[_ticketId].claimed == false,
-            "The reward was claimed."
-        );
-        allTickets_[_ticketId].claimed = true;
-
-        IERC20 token = IERC20(allLotteries_[_lotteryId].tokenAddress);
-        token.transfer(
-            address(msg.sender),
-            (allLotteries_[_lotteryId].ticketPrice *
-                allLotteries_[_lotteryId].sizeOfLottery *
-                winnerRatio_) / 100
-        );
-
-        emit ClaimReward(msg.sender, _ticketId, _lotteryId);
-    }
-
-    function autoClaimReward() external {
+    function claimReward() external {
         require(
             userUnclaimedLotteries_[msg.sender].length != 0,
             "You don't have unclaimed rewards."
         );
         uint256[] memory allWinningRound = userUnclaimedLotteries_[msg.sender];
-
-        for (uint256 i = 0; i < allWinningRound.length - 1; i++) {
-            console.log(allWinningRound[i]);
-            LotteryInfo memory lottery = allLotteries_[
-                userUnclaimedLotteries_[msg.sender][i]
-            ];
-            // get all user ticket in current lottery
-            uint256[] memory userTickets = userTickets_[msg.sender][
+        for (uint256 i = allWinningRound.length; i > 0; i--) {
+            LotteryInfo memory lottery = allLotteries_[allWinningRound[i - 1]];
+            require(allTickets_[lottery.winningTicketId].owner == msg.sender);
+            allTickets_[lottery.winningTicketId].claimed = true;
+            IERC20 token = IERC20(lottery.tokenAddress);
+            token.transfer(
+                address(msg.sender),
+                (lottery.ticketPrice *
+                    lottery.sizeOfLottery *
+                    lottery.prizeDistributionRatio.winner) / 100
+            );
+            userUnclaimedLotteries_[msg.sender].pop();
+            emit ClaimReward(
+                msg.sender,
+                lottery.winningTicketId,
                 lottery.lotteryId
-            ];
-            for (uint256 j = 0; j < userTickets.length - 1; j++) {
-                if (lottery.winningTicketId == userTickets[j]) {
-                    allTickets_[userTickets[j]].claimed = true;
-                    IERC20 token = IERC20(lottery.tokenAddress);
-                    token.transfer(
-                        address(msg.sender),
-                        (lottery.ticketPrice *
-                            lottery.sizeOfLottery *
-                            lottery.prizeDistributionRatio.winner) / 100
-                    );
-                }
-            }
-            delete userUnclaimedLotteries_[msg.sender][i];
+            );
         }
-
-        emit AutoClaimReward(msg.sender, allWinningRound);
     }
 
     /**
