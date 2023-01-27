@@ -137,6 +137,7 @@ contract Lottery is Ownable, Initializable {
     event LotteryClose(uint256 lotteryId);
 
     event Affiliate(
+        address buyerAddress,
         address affiliateAddress,
         uint256 lotteryId,
         uint256 ticketCount
@@ -488,6 +489,7 @@ contract Lottery is Ownable, Initializable {
                 // add affiliate size
                 sizeOfAffiliate_ += 1;
                 emit Affiliate(
+                    msg.sender,
                     _affiliateAddress,
                     lotteryIdCounter_,
                     allAffiliate_[userAffiliate_[msg.sender]][lotteryIdCounter_]
