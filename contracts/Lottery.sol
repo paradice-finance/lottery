@@ -299,8 +299,10 @@ contract Lottery is Ownable, Initializable {
     }
 
     // get all lottery id that user won
-    function getWinningLotteries() external view returns (uint256[] memory) {
-        return userUnclaimedLotteries_[msg.sender];
+    function getWinningLotteries(
+        address _ownerAddress
+    ) external view returns (uint256[] memory) {
+        return userUnclaimedLotteries_[_ownerAddress];
     }
 
     // check available tickets for current round
