@@ -478,7 +478,7 @@ describe('Lottery Contract', () => {
         expectedResponse.balanceAfterClaimRewardTwoLottery
       );
       expect(
-        await lottery.connect(buyerWithAllowance).getWinningLotteries()
+        await lottery.getWinningLotteries(buyerWithAllowance.address)
       ).to.be.an('array').that.is.empty;
     });
     it('should work correctly when play and collect reward multiple times', async () => {
@@ -501,7 +501,7 @@ describe('Lottery Contract', () => {
         expectedResponse.balanceAfterClaimRewardTwoLottery
       );
       expect(
-        await lottery.connect(buyerWithAllowance).getWinningLotteries()
+        await lottery.getWinningLotteries(buyerWithAllowance.address)
       ).to.be.an('array').that.is.empty;
     });
     it('should emit event ClaimReward when success', async () => {
@@ -828,7 +828,7 @@ describe('Lottery Contract', () => {
     it('should return empty if buyer not won lottery', async () => {
       await lottery.connect(owner).createNewLottery();
       expect(
-        await lottery.connect(buyerWithAllowance).getWinningLotteries()
+        await lottery.getWinningLotteries(buyerWithAllowance.address)
       ).to.be.an('array').that.is.empty;
     });
     it('should return lottery id that buyer won', async () => {
@@ -845,7 +845,7 @@ describe('Lottery Contract', () => {
         .fulfillRandomWords(1, randomNumberGenerator.address);
 
       expect(
-        Number(await lottery.connect(buyerWithAllowance).getWinningLotteries())
+        Number(await lottery.getWinningLotteries(buyerWithAllowance.address))
       ).equal(1);
     });
   });
